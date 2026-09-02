@@ -70,7 +70,9 @@ class RuleEngine:
                     "reason": combined_message,
                     "systemMessage": combined_message
                 }
-            elif hook_event in ['PreToolUse', 'PostToolUse']:
+            # Fork: the PostToolUse hook is removed. It re-ran the PreToolUse
+            # check on the same tool_input, and could not stop a finished call.
+            elif hook_event == 'PreToolUse':
                 return {
                     "hookSpecificOutput": {
                         "hookEventName": hook_event,
