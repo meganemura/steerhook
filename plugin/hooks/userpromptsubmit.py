@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified in the meganemura/hookify fork: project rules resolve from the hook input cwd.
 """UserPromptSubmit hook executor for hookify plugin.
 
 This script is called by Claude Code when user submits a prompt.
@@ -30,7 +31,7 @@ def main():
         input_data = json.load(sys.stdin)
 
         # Load user prompt rules
-        rules = load_rules(event='prompt')
+        rules = load_rules(event='prompt', cwd=input_data.get('cwd'))
 
         # Evaluate rules
         engine = RuleEngine()

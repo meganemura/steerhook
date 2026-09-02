@@ -196,11 +196,13 @@ def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
     return frontmatter, message
 
 
-def load_rules(event: Optional[str] = None) -> List[Rule]:
+def load_rules(event: Optional[str] = None, cwd: Optional[str] = None) -> List[Rule]:
     """Load all hookify rules from the user and project rule directories.
 
     Args:
         event: Optional event filter ("bash", "file", "stop", etc.)
+        cwd: Project directory that holds .claude/. Defaults to the
+            process working directory.
 
     Returns:
         List of enabled Rule objects matching the event.
@@ -214,7 +216,9 @@ def load_rules(event: Optional[str] = None) -> List[Rule]:
     user_rules = _load_rule_files(user_files, event)
 
     # Find all hookify.*.local.md files
-    pattern = os.path.join('.claude', 'hookify.*.local.md')
+    # Fork: a plugin hook can run in the plugin's own directory, so the
+    # project is taken from the hook input's cwd, not the process cwd.
+    pattern = os.path.join(cwd or '.', '.claude', 'hookify.*.local.md')
     files = sorted(glob.glob(pattern))
     project_rules = _load_rule_files(files, event)
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified in the meganemura/hookify fork: project rules resolve from the hook input cwd.
 """Stop hook executor for hookify plugin.
 
 This script is called by Claude Code when agent wants to stop.
@@ -30,7 +31,7 @@ def main():
         input_data = json.load(sys.stdin)
 
         # Load stop rules
-        rules = load_rules(event='stop')
+        rules = load_rules(event='stop', cwd=input_data.get('cwd'))
 
         # Evaluate rules
         engine = RuleEngine()

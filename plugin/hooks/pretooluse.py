@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified in the meganemura/hookify fork: project rules resolve from the hook input cwd.
 """PreToolUse hook executor for hookify plugin.
 
 This script is called by Claude Code before any tool executes.
@@ -41,7 +42,7 @@ def main():
             event = 'file'
 
         # Load rules
-        rules = load_rules(event=event)
+        rules = load_rules(event=event, cwd=input_data.get('cwd'))
 
         # Evaluate rules
         engine = RuleEngine()
