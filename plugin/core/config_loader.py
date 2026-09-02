@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified in the meganemura/hookify fork: rules also load from ~/.claude/hookify/.
 """Configuration loader for hookify plugin.
 
 Loads and parses .claude/hookify.*.local.md files.
@@ -196,7 +197,7 @@ def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
 
 
 def load_rules(event: Optional[str] = None) -> List[Rule]:
-    """Load all hookify rules from .claude directory.
+    """Load all hookify rules from the user and project rule directories.
 
     Args:
         event: Optional event filter ("bash", "file", "stop", etc.)
@@ -204,11 +205,26 @@ def load_rules(event: Optional[str] = None) -> List[Rule]:
     Returns:
         List of enabled Rule objects matching the event.
     """
-    rules = []
+    # Fork: rules about the user's own tools apply in every project, so the
+    # user directory (~/.claude/hookify/*.md, or HOOKIFY_RULES_DIR) is read
+    # too. A project rule with the same name replaces the user rule.
+    user_dir = os.environ.get('HOOKIFY_RULES_DIR') or os.path.join(
+        os.path.expanduser('~'), '.claude', 'hookify')
+    user_files = sorted(glob.glob(os.path.join(user_dir, '*.md')))
+    user_rules = _load_rule_files(user_files, event)
 
     # Find all hookify.*.local.md files
     pattern = os.path.join('.claude', 'hookify.*.local.md')
-    files = glob.glob(pattern)
+    files = sorted(glob.glob(pattern))
+    project_rules = _load_rule_files(files, event)
+
+    project_names = {rule.name for rule in project_rules}
+    return [r for r in user_rules if r.name not in project_names] + project_rules
+
+
+def _load_rule_files(files: List[str], event: Optional[str]) -> List[Rule]:
+    """Load the enabled rules that match the event from the given files."""
+    rules = []
 
     for file_path in files:
         try:
