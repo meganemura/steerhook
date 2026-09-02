@@ -1,0 +1,7 @@
+This repository is a fork of the hookify plugin from
+https://github.com/anthropics/claude-plugins-official (plugins/hookify),
+Copyright Anthropic, licensed under the Apache License, Version 2.0.
+
+The plugin/ directory started from upstream commit b58bdbf (2026-05-19).
+Commits after that point are changes made in this fork. Each commit message
+that records an upstream commit carries an "Upstream-Commit:" trailer.

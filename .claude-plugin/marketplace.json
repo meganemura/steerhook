@@ -1,0 +1,12 @@
+{
+  "name": "hookify",
+  "description": "Fork of Anthropic's hookify plugin. Rule messages reach Claude, and rules can live in ~/.claude/hookify/.",
+  "owner": { "name": "meganemura" },
+  "plugins": [
+    {
+      "name": "hookify",
+      "source": "./plugin",
+      "description": "User-configurable PreToolUse rules from markdown files. Blocks with a reason Claude can read."
+    }
+  ]
+}
