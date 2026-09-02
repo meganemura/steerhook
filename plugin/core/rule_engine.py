@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified in the meganemura/hookify fork: rule messages reach Claude.
 """Rule evaluation engine for hookify plugin."""
 
 import re
@@ -73,9 +74,19 @@ class RuleEngine:
                 return {
                     "hookSpecificOutput": {
                         "hookEventName": hook_event,
-                        "permissionDecision": "deny"
+                        "permissionDecision": "deny",
+                        # Fork: upstream sends the message only to the user
+                        # (systemMessage). Claude reads permissionDecisionReason.
+                        "permissionDecisionReason": combined_message
                     },
                     "systemMessage": combined_message
+                }
+            # Fork: upstream lets a blocked prompt through. decision/reason is
+            # the documented block format for UserPromptSubmit.
+            elif hook_event == 'UserPromptSubmit':
+                return {
+                    "decision": "block",
+                    "reason": combined_message
                 }
             else:
                 # For other events, just show message
@@ -86,8 +97,21 @@ class RuleEngine:
         # If only warnings, show them but allow operation
         if warning_rules:
             messages = [f"**[{r.name}]**\n{r.message}" for r in warning_rules]
+            combined_message = "\n\n".join(messages)
+
+            # Fork: upstream sends a warning only to the user. additionalContext
+            # puts it in Claude's context. Stop keeps systemMessage only,
+            # because additionalContext on Stop keeps Claude running.
+            if hook_event in ['PreToolUse', 'UserPromptSubmit']:
+                return {
+                    "hookSpecificOutput": {
+                        "hookEventName": hook_event,
+                        "additionalContext": combined_message
+                    },
+                    "systemMessage": combined_message
+                }
             return {
-                "systemMessage": "\n\n".join(messages)
+                "systemMessage": combined_message
             }
 
         # No matches - allow operation
