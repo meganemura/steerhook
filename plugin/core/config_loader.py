@@ -85,6 +85,16 @@ class Rule:
         )
 
 
+# Fork: upstream used value.strip('"').strip("'"), which removes every quote
+# character at both ends, also when only one end has a quote. A regex such
+# as [^"]*" lost its closing quote. Only one matching pair is removed now.
+def _unquote(value: str) -> str:
+    """Remove one pair of matching quotes from both ends of value."""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+        return value[1:-1]
+    return value
+
+
 def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
     """Extract YAML frontmatter and message body from markdown.
 
@@ -145,7 +155,7 @@ def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
                 current_list = []
             else:
                 # Simple key-value pair
-                value = value.strip('"').strip("'")
+                value = _unquote(value)
                 if value.lower() == 'true':
                     value = True
                 elif value.lower() == 'false':
@@ -168,24 +178,24 @@ def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
                 for part in item_text.split(','):
                     if ':' in part:
                         k, v = part.split(':', 1)
-                        item_dict[k.strip()] = v.strip().strip('"').strip("'")
+                        item_dict[k.strip()] = _unquote(v.strip())
                 current_list.append(item_dict)
                 in_dict_item = False
             elif ':' in item_text:
                 # Start of multi-line dict item: "- field: command"
                 in_dict_item = True
                 k, v = item_text.split(':', 1)
-                current_dict = {k.strip(): v.strip().strip('"').strip("'")}
+                current_dict = {k.strip(): _unquote(v.strip())}
             else:
                 # Simple list item
-                current_list.append(item_text.strip('"').strip("'"))
+                current_list.append(_unquote(item_text))
                 in_dict_item = False
 
         # Continuation of dict item (indented under list item)
         elif indent > 2 and in_dict_item and ':' in line:
             # This is a field of the current dict item
             k, v = stripped.split(':', 1)
-            current_dict[k.strip()] = v.strip().strip('"').strip("'")
+            current_dict[k.strip()] = _unquote(v.strip())
 
     # Save final list/dict if any
     if in_list and current_key:
