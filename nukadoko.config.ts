@@ -20,6 +20,7 @@ export default defineConfig({
         projectRules: join(root, "project", ".claude", "steerhook"),
         elsewhere: join(root, "elsewhere"),
         rulesDirOverride: undefined as string | undefined,
+        nodeOverride: undefined as string | undefined,
       };
       for (const d of [dirs.home, dirs.project, dirs.elsewhere]) mkdirSync(d, { recursive: true });
       const outcome = await use(dirs);

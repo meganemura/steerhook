@@ -143,3 +143,20 @@ Feature: Reading rule files
       """
     When Claude runs the bash command "sudo ls"
     Then Claude reads the note "Think before sudo."
+
+  Scenario: A condition can be written on one line with commas
+    Given the user rule file "inline.md" contains
+      """
+      ---
+      name: inline
+      enabled: true
+      event: bash
+      action: warn
+      conditions:
+        - field: command, operator: contains, pattern: sudo
+      ---
+
+      Think before sudo.
+      """
+    When Claude runs the bash command "sudo ls"
+    Then Claude reads the note "Think before sudo."

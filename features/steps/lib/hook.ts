@@ -49,6 +49,8 @@ export async function runHook(
   const command = hookCommand(event);
   const env: Record<string, string> = { ...(process.env as Record<string, string>), CLAUDE_PLUGIN_ROOT: pluginRoot(), HOME: sandbox.home };
   delete env.STEERHOOK_RULES_DIR;
+  delete env.STEERHOOK_NODE;
+  if (sandbox.nodeOverride) env.STEERHOOK_NODE = sandbox.nodeOverride;
   if (sandbox.rulesDirOverride) env.STEERHOOK_RULES_DIR = sandbox.rulesDirOverride;
   const stdin = JSON.stringify({ session_id: "scenario", cwd: sandbox.project, hook_event_name: event, ...input });
   const proc = spawnSync("sh", ["-c", command], { cwd: sandbox.elsewhere, env, input: stdin, encoding: "utf8" });
