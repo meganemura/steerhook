@@ -38,5 +38,9 @@ Follow ASD-STE100 Simplified Technical English.
   they do not depend on the implementation language. Each feature has an
   acceptance record beside it; `npx nuka accept <feature>` writes a new one
   after a green run on a clean tree.
+- `test/` holds property tests run by `node --test` (`npm test`), written with
+  hegel. They cover the command views, where a hand-written example list
+  cannot reach the quoting cases. Acceptance scenarios stay the contract;
+  these check one module against generated input.
 - Development loop: `claude --plugin-dir "$PWD/plugin"` loads the working tree
   for one session. Rules for a live test go in `~/.claude/steerhook/`.

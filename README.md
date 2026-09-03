@@ -90,8 +90,9 @@ message shown to the user and lets the call through.
 ## Develop
 
 ```sh
-npm install              # nukadoko, for the scenarios
+npm install              # nukadoko for the scenarios, hegel for the properties
 npx nuka check           # static check of features and steps
+npm test                 # property tests for the command views
 npx nuka run features    # run every scenario
 ```
 
@@ -99,6 +100,11 @@ The scenarios under `features/` are the behavior contract. They run the hook
 scripts through `hooks.json` with JSON on stdin, the way Claude Code runs
 them. `STEERHOOK_PLUGIN_ROOT` points them at another implementation of the
 same contract.
+
+`test/` holds property tests for the command views, written with hegel. They
+generate commands rather than listing them, so the scanner is checked against
+text no one thought to write. Raise the case count for a longer run:
+`HEGEL_CASES=1000 npm test`.
 
 ## License
 

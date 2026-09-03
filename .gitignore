@@ -9,3 +9,6 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Hegel's failing-example database for the property tests.
+.hegel/
