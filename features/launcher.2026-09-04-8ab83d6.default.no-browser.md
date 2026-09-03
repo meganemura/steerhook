@@ -1,18 +1,18 @@
 ---
 feature: features/launcher.feature
-commit: 306fe8c9e049895f4c1a4d65f81a8d5679c30a7a
-run_id: run-20260903-215826-yk71
-ran_at: 2026-09-03T21:58:26.770+09:00
-accepted_at: 2026-09-03T21:58:39.736+09:00
+commit: 8ab83d6aa493d65a233c00951258136e7ae81851
+run_id: run-20260904-061445-tm20
+ran_at: 2026-09-04T06:14:49.986+09:00
+accepted_at: 2026-09-04T06:15:15.278+09:00
 environment: default
 browser: none
 scenarios:
   - name: Without a usable node the hook tells the user and lets the call through
     line: 9
-    scenario_record_id: scn-20260903-215826-zsdn
+    scenario_record_id: scn-20260904-061449-l847
 ---
 
-# Finding node: green at 306fe8c
+# Finding node: green at 8ab83d6
 
 ## Condition
 
@@ -50,18 +50,18 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule "no-foo" blocks bash commands that match "foo" | ok | 4 | true | 0 | 0 |
+| the user rule "no-foo" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
 | STEERHOOK_NODE names a node that does not exist | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 176 | false | 0 | 0 |
-| the command is allowed | ok | 9 | false | 0 | 0 |
-| the user sees "no rule was applied to this call" | ok | 2 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 183 | false | 0 | 0 |
+| the command is allowed | ok | 1 | false | 0 | 0 |
+| the user sees "no rule was applied to this call" | ok | 1 | false | 0 | 0 |
 | the hook exits with status 0 | ok | 1 | false | 0 | 0 |
 
 #### the user rule "no-foo" blocks bash commands that match "foo"
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-a738",
+  "step_record_id": "step-20260904-061449-623r",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -76,10 +76,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.773Z",
-  "finished_at": "2026-09-03T12:58:26.777Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:49.987Z",
+  "finished_at": "2026-09-03T21:14:49.988Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -91,7 +91,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:26.774Z"
+      "at": "2026-09-03T21:14:49.987Z"
     }
   ]
 }
@@ -101,7 +101,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-cenn",
+  "step_record_id": "step-20260904-061449-g60b",
   "step": "node-override-missing",
   "kind": "run",
   "args": {},
@@ -111,10 +111,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.781Z",
-  "finished_at": "2026-09-03T12:58:26.782Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:49.989Z",
+  "finished_at": "2026-09-03T21:14:49.990Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -134,7 +134,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-el8b",
+  "step_record_id": "step-20260904-061449-p9o6",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -149,10 +149,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.784Z",
-  "finished_at": "2026-09-03T12:58:26.960Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:49.990Z",
+  "finished_at": "2026-09-03T21:14:50.173Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -172,7 +172,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-jhtn",
+  "step_record_id": "step-20260904-061450-n33o",
   "step": "allowed",
   "kind": "run",
   "args": {
@@ -186,10 +186,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.962Z",
-  "finished_at": "2026-09-03T12:58:26.971Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:50.174Z",
+  "finished_at": "2026-09-03T21:14:50.175Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -197,7 +197,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215826-el8b",
+      "step_record_id": "step-20260904-061449-p9o6",
       "step": "run-bash"
     }
   ]
@@ -208,7 +208,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-0fn5",
+  "step_record_id": "step-20260904-061450-8tmt",
   "step": "user-sees",
   "kind": "run",
   "args": {
@@ -223,10 +223,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.973Z",
-  "finished_at": "2026-09-03T12:58:26.975Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:50.176Z",
+  "finished_at": "2026-09-03T21:14:50.177Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -234,7 +234,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215826-el8b",
+      "step_record_id": "step-20260904-061449-p9o6",
       "step": "run-bash"
     }
   ]
@@ -245,7 +245,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215826-8t6z",
+  "step_record_id": "step-20260904-061450-5htq",
   "step": "hook-exits-with-status",
   "kind": "run",
   "args": {
@@ -258,10 +258,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215826-zsdn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:26.977Z",
-  "finished_at": "2026-09-03T12:58:26.978Z",
+  "scenario_record_id": "scn-20260904-061449-l847",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:50.178Z",
+  "finished_at": "2026-09-03T21:14:50.179Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -269,7 +269,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215826-el8b",
+      "step_record_id": "step-20260904-061449-p9o6",
       "step": "run-bash"
     }
   ]

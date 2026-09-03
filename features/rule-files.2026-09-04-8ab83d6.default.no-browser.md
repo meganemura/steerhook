@@ -1,42 +1,42 @@
 ---
 feature: features/rule-files.feature
-commit: 306fe8c9e049895f4c1a4d65f81a8d5679c30a7a
-run_id: run-20260903-215826-yk71
-ran_at: 2026-09-03T21:58:34.213+09:00
-accepted_at: 2026-09-03T21:58:47.399+09:00
+commit: 8ab83d6aa493d65a233c00951258136e7ae81851
+run_id: run-20260904-061445-tm20
+ran_at: 2026-09-04T06:14:59.061+09:00
+accepted_at: 2026-09-04T06:15:10.612+09:00
 environment: default
 browser: none
 scenarios:
   - name: A pattern in matching quotes loses that one pair
     line: 7
-    scenario_record_id: scn-20260903-215834-c3q3
+    scenario_record_id: scn-20260904-061459-rt6u
   - name: A pattern wrapped in a group keeps the quotes inside it
     line: 23
-    scenario_record_id: scn-20260903-215834-e8ny
-  - name: The same pattern stays quiet for a backtick outside double quotes
+    scenario_record_id: scn-20260904-061459-3gr9
+  - name: The same pattern stays quiet when the argument is in single quotes
     line: 39
-    scenario_record_id: scn-20260903-215834-1xv5
+    scenario_record_id: scn-20260904-061459-3ljy
   - name: A rule with enabled false never fires
     line: 55
-    scenario_record_id: scn-20260903-215835-ayid
+    scenario_record_id: scn-20260904-061500-0gwd
   - name: A file without frontmatter is skipped and the hook still answers
     line: 71
-    scenario_record_id: scn-20260903-215835-v9xb
+    scenario_record_id: scn-20260904-061500-yilz
   - name: A rule with conditions fires when every condition matches
     line: 84
-    scenario_record_id: scn-20260903-215835-4ky7
+    scenario_record_id: scn-20260904-061500-vpgo
   - name: A rule with conditions stays quiet when one condition fails
     line: 106
-    scenario_record_id: scn-20260903-215835-fvqc
+    scenario_record_id: scn-20260904-061501-t3wl
   - name: A rule for all events fires on a bash command through a condition
     line: 128
-    scenario_record_id: scn-20260903-215836-t1dw
+    scenario_record_id: scn-20260904-061501-j595
   - name: A condition can be written on one line with commas
     line: 147
-    scenario_record_id: scn-20260903-215836-m7de
+    scenario_record_id: scn-20260904-061501-20ol
 ---
 
-# Reading rule files: green at 306fe8c
+# Reading rule files: green at 8ab83d6
 
 ## Condition
 
@@ -69,35 +69,35 @@ Feature: Reading rule files
     Then the command is denied and Claude reads "Quoted pattern matched."
 
   Scenario: A pattern wrapped in a group keeps the quotes inside it
-    Given the user rule file "backtick.md" contains
+    Given the user rule file "double-quoted.md" contains
       """
       ---
-      name: backtick-in-double-quotes
+      name: double-quoted-argument
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*`[^"\n]*")
+      pattern: (?:"[^"\n]*")
       action: warn
       ---
 
-      A backtick inside double quotes is a command substitution.
+      This command carries a double-quoted argument.
       """
-    When Claude runs the bash command "echo \"today is `date`\""
-    Then Claude reads the note "A backtick inside double quotes is a command substitution."
+    When Claude runs the bash command "echo \"today is Monday\""
+    Then Claude reads the note "This command carries a double-quoted argument."
 
-  Scenario: The same pattern stays quiet for a backtick outside double quotes
-    Given the user rule file "backtick.md" contains
+  Scenario: The same pattern stays quiet when the argument is in single quotes
+    Given the user rule file "double-quoted.md" contains
       """
       ---
-      name: backtick-in-double-quotes
+      name: double-quoted-argument
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*`[^"\n]*")
+      pattern: (?:"[^"\n]*")
       action: warn
       ---
 
-      A backtick inside double quotes is a command substitution.
+      This command carries a double-quoted argument.
       """
-    When Claude runs the bash command "echo 'no `dq` here'"
+    When Claude runs the bash command "echo 'today is Monday'"
     Then the hook returns nothing
 
   Scenario: A rule with enabled false never fires
@@ -218,15 +218,15 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "quoted.md" contains | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 263 | false | 0 | 0 |
+| the user rule file "quoted.md" contains | ok | 2 | true | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 338 | false | 0 | 0 |
 | the command is denied and Claude reads "Quoted pattern matched." | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "quoted.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-cnb5",
+  "step_record_id": "step-20260904-061459-2s5t",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -239,10 +239,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-c3q3",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.213Z",
-  "finished_at": "2026-09-03T12:58:34.214Z",
+  "scenario_record_id": "scn-20260904-061459-rt6u",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.061Z",
+  "finished_at": "2026-09-03T21:14:59.063Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -254,7 +254,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:34.213Z"
+      "at": "2026-09-03T21:14:59.062Z"
     }
   ]
 }
@@ -264,7 +264,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-t4ze",
+  "step_record_id": "step-20260904-061459-2lvy",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -284,10 +284,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-c3q3",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.215Z",
-  "finished_at": "2026-09-03T12:58:34.478Z",
+  "scenario_record_id": "scn-20260904-061459-rt6u",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.064Z",
+  "finished_at": "2026-09-03T21:14:59.402Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -307,7 +307,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-z6nx",
+  "step_record_id": "step-20260904-061459-yb07",
   "step": "denied-with-reason",
   "kind": "run",
   "args": {
@@ -328,10 +328,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-c3q3",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.479Z",
-  "finished_at": "2026-09-03T12:58:34.480Z",
+  "scenario_record_id": "scn-20260904-061459-rt6u",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.403Z",
+  "finished_at": "2026-09-03T21:14:59.404Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -339,7 +339,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215834-t4ze",
+      "step_record_id": "step-20260904-061459-2lvy",
       "step": "run-bash"
     }
   ]
@@ -350,31 +350,31 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "backtick.md" contains | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "echo \"today is `date`\"" | ok | 269 | false | 0 | 0 |
-| Claude reads the note "A backtick inside double quotes is a command substitution." | ok | 1 | false | 0 | 0 |
+| the user rule file "double-quoted.md" contains | ok | 2 | true | 0 | 0 |
+| Claude runs the bash command "echo \"today is Monday\"" | ok | 321 | false | 0 | 0 |
+| Claude reads the note "This command carries a double-quoted argument." | ok | 0 | false | 0 | 0 |
 
-#### the user rule file "backtick.md" contains
+#### the user rule file "double-quoted.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-n0s7",
+  "step_record_id": "step-20260904-061459-xqlt",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
-    "file": "backtick.md",
-    "content": "---\nname: backtick-in-double-quotes\nenabled: true\nevent: bash\npattern: (?:\"[^\"\\n]*`[^\"\\n]*\")\naction: warn\n---\n\nA backtick inside double quotes is a command substitution."
+    "file": "double-quoted.md",
+    "content": "---\nname: double-quoted-argument\nenabled: true\nevent: bash\npattern: (?:\"[^\"\\n]*\")\naction: warn\n---\n\nThis command carries a double-quoted argument."
   },
   "result": {
-    "file": "<sandbox>/home/.claude/steerhook/backtick.md"
+    "file": "<sandbox>/home/.claude/steerhook/double-quoted.md"
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-e8ny",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.491Z",
-  "finished_at": "2026-09-03T12:58:34.492Z",
+  "scenario_record_id": "scn-20260904-061459-3gr9",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.418Z",
+  "finished_at": "2026-09-03T21:14:59.420Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -386,39 +386,39 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:34.491Z"
+      "at": "2026-09-03T21:14:59.418Z"
     }
   ]
 }
 ```
 
-#### Claude runs the bash command "echo \"today is `date`\""
+#### Claude runs the bash command "echo \"today is Monday\""
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-6yam",
+  "step_record_id": "step-20260904-061459-27k2",
   "step": "run-bash",
   "kind": "run",
   "args": {
-    "command": "echo \"today is `date`\""
+    "command": "echo \"today is Monday\""
   },
   "result": {
     "exit_code": 0,
     "output": {
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
-        "additionalContext": "**[backtick-in-double-quotes]**\nA backtick inside double quotes is a command substitution."
+        "additionalContext": "**[double-quoted-argument]**\nThis command carries a double-quoted argument."
       },
-      "systemMessage": "**[backtick-in-double-quotes]**\nA backtick inside double quotes is a command substitution."
+      "systemMessage": "**[double-quoted-argument]**\nThis command carries a double-quoted argument."
     }
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-e8ny",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.493Z",
-  "finished_at": "2026-09-03T12:58:34.762Z",
+  "scenario_record_id": "scn-20260904-061459-3gr9",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.421Z",
+  "finished_at": "2026-09-03T21:14:59.742Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -434,33 +434,33 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 }
 ```
 
-#### Claude reads the note "A backtick inside double quotes is a command substitution."
+#### Claude reads the note "This command carries a double-quoted argument."
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-jfxu",
+  "step_record_id": "step-20260904-061459-tkwb",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
     "output": {
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
-        "additionalContext": "**[backtick-in-double-quotes]**\nA backtick inside double quotes is a command substitution."
+        "additionalContext": "**[double-quoted-argument]**\nThis command carries a double-quoted argument."
       },
-      "systemMessage": "**[backtick-in-double-quotes]**\nA backtick inside double quotes is a command substitution."
+      "systemMessage": "**[double-quoted-argument]**\nThis command carries a double-quoted argument."
     },
-    "text": "A backtick inside double quotes is a command substitution."
+    "text": "This command carries a double-quoted argument."
   },
   "result": {
-    "context": "**[backtick-in-double-quotes]**\nA backtick inside double quotes is a command substitution."
+    "context": "**[double-quoted-argument]**\nThis command carries a double-quoted argument."
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-e8ny",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.763Z",
-  "finished_at": "2026-09-03T12:58:34.764Z",
+  "scenario_record_id": "scn-20260904-061459-3gr9",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.743Z",
+  "finished_at": "2026-09-03T21:14:59.743Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -468,42 +468,42 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215834-6yam",
+      "step_record_id": "step-20260904-061459-27k2",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### The same pattern stays quiet for a backtick outside double quotes (line 39)
+### The same pattern stays quiet when the argument is in single quotes (line 39)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "backtick.md" contains | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "echo 'no `dq` here'" | ok | 264 | false | 0 | 0 |
+| the user rule file "double-quoted.md" contains | ok | 1 | true | 0 | 0 |
+| Claude runs the bash command "echo 'today is Monday'" | ok | 331 | false | 0 | 0 |
 | the hook returns nothing | ok | 1 | false | 0 | 0 |
 
-#### the user rule file "backtick.md" contains
+#### the user rule file "double-quoted.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-q6ov",
+  "step_record_id": "step-20260904-061459-mwch",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
-    "file": "backtick.md",
-    "content": "---\nname: backtick-in-double-quotes\nenabled: true\nevent: bash\npattern: (?:\"[^\"\\n]*`[^\"\\n]*\")\naction: warn\n---\n\nA backtick inside double quotes is a command substitution."
+    "file": "double-quoted.md",
+    "content": "---\nname: double-quoted-argument\nenabled: true\nevent: bash\npattern: (?:\"[^\"\\n]*\")\naction: warn\n---\n\nThis command carries a double-quoted argument."
   },
   "result": {
-    "file": "<sandbox>/home/.claude/steerhook/backtick.md"
+    "file": "<sandbox>/home/.claude/steerhook/double-quoted.md"
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-1xv5",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.773Z",
-  "finished_at": "2026-09-03T12:58:34.774Z",
+  "scenario_record_id": "scn-20260904-061459-3ljy",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.754Z",
+  "finished_at": "2026-09-03T21:14:59.755Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -515,21 +515,21 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:34.773Z"
+      "at": "2026-09-03T21:14:59.754Z"
     }
   ]
 }
 ```
 
-#### Claude runs the bash command "echo 'no `dq` here'"
+#### Claude runs the bash command "echo 'today is Monday'"
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-u6ag",
+  "step_record_id": "step-20260904-061459-hgpc",
   "step": "run-bash",
   "kind": "run",
   "args": {
-    "command": "echo 'no `dq` here'"
+    "command": "echo 'today is Monday'"
   },
   "result": {
     "exit_code": 0,
@@ -538,10 +538,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-1xv5",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.775Z",
-  "finished_at": "2026-09-03T12:58:35.039Z",
+  "scenario_record_id": "scn-20260904-061459-3ljy",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:14:59.756Z",
+  "finished_at": "2026-09-03T21:15:00.087Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -561,7 +561,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-u7o5",
+  "step_record_id": "step-20260904-061500-6bq3",
   "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
@@ -573,10 +573,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215834-1xv5",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.040Z",
-  "finished_at": "2026-09-03T12:58:35.041Z",
+  "scenario_record_id": "scn-20260904-061459-3ljy",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.088Z",
+  "finished_at": "2026-09-03T21:15:00.089Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -584,7 +584,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215834-u6ag",
+      "step_record_id": "step-20260904-061459-hgpc",
       "step": "run-bash"
     }
   ]
@@ -596,14 +596,14 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule file "off.md" contains | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 264 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 324 | false | 0 | 0 |
 | the hook returns nothing | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "off.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-9guj",
+  "step_record_id": "step-20260904-061500-lulg",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -616,10 +616,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-ayid",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.053Z",
-  "finished_at": "2026-09-03T12:58:35.054Z",
+  "scenario_record_id": "scn-20260904-061500-0gwd",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.101Z",
+  "finished_at": "2026-09-03T21:15:00.102Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -631,7 +631,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:35.053Z"
+      "at": "2026-09-03T21:15:00.101Z"
     }
   ]
 }
@@ -641,7 +641,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-bn0g",
+  "step_record_id": "step-20260904-061500-s2gh",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -654,10 +654,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-ayid",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.055Z",
-  "finished_at": "2026-09-03T12:58:35.319Z",
+  "scenario_record_id": "scn-20260904-061500-0gwd",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.103Z",
+  "finished_at": "2026-09-03T21:15:00.427Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -677,7 +677,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-f9pw",
+  "step_record_id": "step-20260904-061500-2wrm",
   "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
@@ -689,10 +689,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-ayid",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.319Z",
-  "finished_at": "2026-09-03T12:58:35.320Z",
+  "scenario_record_id": "scn-20260904-061500-0gwd",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.429Z",
+  "finished_at": "2026-09-03T21:15:00.430Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -700,7 +700,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215835-bn0g",
+      "step_record_id": "step-20260904-061500-s2gh",
       "step": "run-bash"
     }
   ]
@@ -711,17 +711,17 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "notes.md" contains | ok | 2 | true | 0 | 0 |
+| the user rule file "notes.md" contains | ok | 1 | true | 0 | 0 |
 | the user rule "no-foo" blocks bash commands that match "foo" | ok | 0 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 278 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 340 | false | 0 | 0 |
 | the command is denied and Claude reads "Use bar instead of foo." | ok | 1 | false | 0 | 0 |
-| the hook exits with status 0 | ok | 0 | false | 0 | 0 |
+| the hook exits with status 0 | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "notes.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-ndpv",
+  "step_record_id": "step-20260904-061500-svb4",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -734,10 +734,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-v9xb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.329Z",
-  "finished_at": "2026-09-03T12:58:35.331Z",
+  "scenario_record_id": "scn-20260904-061500-yilz",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.444Z",
+  "finished_at": "2026-09-03T21:15:00.445Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -749,7 +749,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:35.330Z"
+      "at": "2026-09-03T21:15:00.444Z"
     }
   ]
 }
@@ -759,7 +759,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-tsrr",
+  "step_record_id": "step-20260904-061500-njwa",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -774,10 +774,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-v9xb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.332Z",
-  "finished_at": "2026-09-03T12:58:35.332Z",
+  "scenario_record_id": "scn-20260904-061500-yilz",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.447Z",
+  "finished_at": "2026-09-03T21:15:00.447Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -797,7 +797,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-mzdb",
+  "step_record_id": "step-20260904-061500-lucy",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -817,10 +817,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-v9xb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.333Z",
-  "finished_at": "2026-09-03T12:58:35.611Z",
+  "scenario_record_id": "scn-20260904-061500-yilz",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.448Z",
+  "finished_at": "2026-09-03T21:15:00.788Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -840,7 +840,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-xtlo",
+  "step_record_id": "step-20260904-061500-cnes",
   "step": "denied-with-reason",
   "kind": "run",
   "args": {
@@ -861,10 +861,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-v9xb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.612Z",
-  "finished_at": "2026-09-03T12:58:35.613Z",
+  "scenario_record_id": "scn-20260904-061500-yilz",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.789Z",
+  "finished_at": "2026-09-03T21:15:00.790Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -872,7 +872,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215835-mzdb",
+      "step_record_id": "step-20260904-061500-lucy",
       "step": "run-bash"
     }
   ]
@@ -883,7 +883,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-94aa",
+  "step_record_id": "step-20260904-061500-l0jh",
   "step": "hook-exits-with-status",
   "kind": "run",
   "args": {
@@ -896,10 +896,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-v9xb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.614Z",
-  "finished_at": "2026-09-03T12:58:35.614Z",
+  "scenario_record_id": "scn-20260904-061500-yilz",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.791Z",
+  "finished_at": "2026-09-03T21:15:00.792Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -907,7 +907,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215835-mzdb",
+      "step_record_id": "step-20260904-061500-lucy",
       "step": "run-bash"
     }
   ]
@@ -918,15 +918,15 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "env-edit.md" contains | ok | 1 | true | 0 | 0 |
-| Claude edits the file ".env" to add "API_KEY=1" | ok | 264 | false | 0 | 0 |
+| the user rule file "env-edit.md" contains | ok | 2 | true | 0 | 0 |
+| Claude edits the file ".env" to add "API_KEY=1" | ok | 345 | false | 0 | 0 |
 | Claude reads the note "Keep secrets out of .env edits." | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "env-edit.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-l24j",
+  "step_record_id": "step-20260904-061500-b6yb",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -939,10 +939,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-4ky7",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.625Z",
-  "finished_at": "2026-09-03T12:58:35.626Z",
+  "scenario_record_id": "scn-20260904-061500-vpgo",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.807Z",
+  "finished_at": "2026-09-03T21:15:00.809Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -954,7 +954,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:35.625Z"
+      "at": "2026-09-03T21:15:00.807Z"
     }
   ]
 }
@@ -964,7 +964,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-hg4t",
+  "step_record_id": "step-20260904-061500-bgfh",
   "step": "edit-file",
   "kind": "run",
   "args": {
@@ -984,10 +984,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-4ky7",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.627Z",
-  "finished_at": "2026-09-03T12:58:35.891Z",
+  "scenario_record_id": "scn-20260904-061500-vpgo",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:00.810Z",
+  "finished_at": "2026-09-03T21:15:01.155Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1007,7 +1007,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-sexv",
+  "step_record_id": "step-20260904-061501-lv0l",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
@@ -1026,10 +1026,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-4ky7",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.892Z",
-  "finished_at": "2026-09-03T12:58:35.893Z",
+  "scenario_record_id": "scn-20260904-061500-vpgo",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.156Z",
+  "finished_at": "2026-09-03T21:15:01.157Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1037,7 +1037,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215835-hg4t",
+      "step_record_id": "step-20260904-061500-bgfh",
       "step": "edit-file"
     }
   ]
@@ -1049,14 +1049,14 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule file "env-edit.md" contains | ok | 1 | true | 0 | 0 |
-| Claude edits the file "README.md" to add "API_KEY=1" | ok | 264 | false | 0 | 0 |
+| Claude edits the file "README.md" to add "API_KEY=1" | ok | 366 | false | 0 | 0 |
 | the hook returns nothing | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "env-edit.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-s8ev",
+  "step_record_id": "step-20260904-061501-qacc",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -1069,10 +1069,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-fvqc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.904Z",
-  "finished_at": "2026-09-03T12:58:35.905Z",
+  "scenario_record_id": "scn-20260904-061501-t3wl",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.170Z",
+  "finished_at": "2026-09-03T21:15:01.171Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1084,7 +1084,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:35.904Z"
+      "at": "2026-09-03T21:15:01.170Z"
     }
   ]
 }
@@ -1094,7 +1094,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215835-9nxz",
+  "step_record_id": "step-20260904-061501-nqo4",
   "step": "edit-file",
   "kind": "run",
   "args": {
@@ -1108,10 +1108,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-fvqc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:35.905Z",
-  "finished_at": "2026-09-03T12:58:36.169Z",
+  "scenario_record_id": "scn-20260904-061501-t3wl",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.173Z",
+  "finished_at": "2026-09-03T21:15:01.539Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1131,7 +1131,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-7z8s",
+  "step_record_id": "step-20260904-061501-2nfq",
   "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
@@ -1143,10 +1143,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215835-fvqc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.170Z",
-  "finished_at": "2026-09-03T12:58:36.171Z",
+  "scenario_record_id": "scn-20260904-061501-t3wl",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.541Z",
+  "finished_at": "2026-09-03T21:15:01.542Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1154,7 +1154,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215835-9nxz",
+      "step_record_id": "step-20260904-061501-nqo4",
       "step": "edit-file"
     }
   ]
@@ -1165,15 +1165,15 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "everywhere.md" contains | ok | 2 | true | 0 | 0 |
-| Claude runs the bash command "sudo ls" | ok | 275 | false | 0 | 0 |
-| Claude reads the note "Think before sudo." | ok | 0 | false | 0 | 0 |
+| the user rule file "everywhere.md" contains | ok | 1 | true | 0 | 0 |
+| Claude runs the bash command "sudo ls" | ok | 369 | false | 0 | 0 |
+| Claude reads the note "Think before sudo." | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "everywhere.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-nbvj",
+  "step_record_id": "step-20260904-061501-1cg8",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -1186,10 +1186,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-t1dw",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.182Z",
-  "finished_at": "2026-09-03T12:58:36.184Z",
+  "scenario_record_id": "scn-20260904-061501-j595",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.556Z",
+  "finished_at": "2026-09-03T21:15:01.557Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1201,7 +1201,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:36.182Z"
+      "at": "2026-09-03T21:15:01.556Z"
     }
   ]
 }
@@ -1211,7 +1211,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-425j",
+  "step_record_id": "step-20260904-061501-ypzx",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1230,10 +1230,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-t1dw",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.185Z",
-  "finished_at": "2026-09-03T12:58:36.460Z",
+  "scenario_record_id": "scn-20260904-061501-j595",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.558Z",
+  "finished_at": "2026-09-03T21:15:01.927Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1253,7 +1253,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-k2h7",
+  "step_record_id": "step-20260904-061501-yod7",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
@@ -1272,10 +1272,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-t1dw",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.461Z",
-  "finished_at": "2026-09-03T12:58:36.461Z",
+  "scenario_record_id": "scn-20260904-061501-j595",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.929Z",
+  "finished_at": "2026-09-03T21:15:01.930Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1283,7 +1283,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215836-425j",
+      "step_record_id": "step-20260904-061501-ypzx",
       "step": "run-bash"
     }
   ]
@@ -1294,15 +1294,15 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule file "inline.md" contains | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "sudo ls" | ok | 266 | false | 0 | 0 |
+| the user rule file "inline.md" contains | ok | 2 | true | 0 | 0 |
+| Claude runs the bash command "sudo ls" | ok | 358 | false | 0 | 0 |
 | Claude reads the note "Think before sudo." | ok | 1 | false | 0 | 0 |
 
 #### the user rule file "inline.md" contains
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-z1r7",
+  "step_record_id": "step-20260904-061501-zi0m",
   "step": "user-rule-file",
   "kind": "run",
   "args": {
@@ -1315,10 +1315,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-m7de",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.475Z",
-  "finished_at": "2026-09-03T12:58:36.476Z",
+  "scenario_record_id": "scn-20260904-061501-20ol",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.945Z",
+  "finished_at": "2026-09-03T21:15:01.947Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1330,7 +1330,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:36.475Z"
+      "at": "2026-09-03T21:15:01.946Z"
     }
   ]
 }
@@ -1340,7 +1340,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-bopv",
+  "step_record_id": "step-20260904-061501-mhgw",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1359,10 +1359,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-m7de",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.477Z",
-  "finished_at": "2026-09-03T12:58:36.743Z",
+  "scenario_record_id": "scn-20260904-061501-20ol",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:01.949Z",
+  "finished_at": "2026-09-03T21:15:02.307Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1382,7 +1382,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215836-42ui",
+  "step_record_id": "step-20260904-061502-8z5d",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
@@ -1401,10 +1401,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215836-m7de",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:36.744Z",
-  "finished_at": "2026-09-03T12:58:36.745Z",
+  "scenario_record_id": "scn-20260904-061501-20ol",
+  "run_id": "run-20260904-061445-tm20",
+  "started_at": "2026-09-03T21:15:02.309Z",
+  "finished_at": "2026-09-03T21:15:02.310Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1412,7 +1412,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215836-bopv",
+      "step_record_id": "step-20260904-061501-mhgw",
       "step": "run-bash"
     }
   ]
