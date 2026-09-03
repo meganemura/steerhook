@@ -18,7 +18,7 @@ Use Glob tool to find all hookify rule files:
 pattern: "*.md"
 path: the home directory + "/.claude/hookify"
 ```
-If the project also holds `.claude/hookify.*.local.md` files, include them.
+If the project also holds `.claude/hookify/*.md` files, include them.
 
 If no rules found, inform user:
 ```

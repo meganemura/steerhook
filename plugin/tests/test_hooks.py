@@ -44,7 +44,7 @@ class PreToolUseHookTest(unittest.TestCase):
         return json.loads(proc.stdout)
 
     def test_project_rule_blocks_with_reason(self):
-        write_rule(os.path.join(self.project, '.claude', 'hookify.no-foo.local.md'),
+        write_rule(os.path.join(self.project, '.claude', 'hookify', 'no-foo.md'),
                    'no-foo', r'\bfoo\b', 'block', 'Use bar instead of foo.')
 
         result = self.run_hook('foo --help')

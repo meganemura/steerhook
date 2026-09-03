@@ -20,7 +20,7 @@ Hookify installs generic hooks that run on these events:
 - **Stop**: When Claude wants to stop working
 - **UserPromptSubmit**: When user submits a prompt
 
-These hooks read rule files from `~/.claude/hookify/*.md` (and from a project's `.claude/hookify.*.local.md`, if present) and check if any rules match the current operation.
+These hooks read rule files from `~/.claude/hookify/*.md` (and from a project's `.claude/hookify/*.md`, if present) and check if any rules match the current operation.
 
 ### 2. Configuration Files
 

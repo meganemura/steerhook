@@ -285,7 +285,7 @@ Better: `rm\s+-rf`
 
 **Location:** `~/.claude/hookify/`, the user's rule directory. A rule there applies in every project.
 **Naming:** `~/.claude/hookify/{descriptive-name}.md`
-**Project rules:** A project can also hold `.claude/hookify.{name}.local.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule. A project rule with `enabled: false` switches the user rule off in that project.
+**Project rules:** A project can also hold `.claude/hookify/{name}.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule. A project rule with `enabled: false` switches the user rule off in that project.
 
 **Good names:**
 - `dangerous-rm.md`

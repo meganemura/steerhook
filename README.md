@@ -11,7 +11,8 @@ warns before a tool runs.
   This fork sends the message as `permissionDecisionReason` (block) or
   `additionalContext` (warn). The user still sees it as `systemMessage`.
 - **Rules can live in `~/.claude/hookify/*.md`.** Upstream reads rules only from
-  the project's `.claude/` directory. Rules about your own tools apply in every
+  the project's `.claude/hookify.*.local.md`. Project rules now live in
+  `.claude/hookify/*.md`, the same shape as the user directory. Rules about your own tools apply in every
   project, so they need one place. The `/hookify` command and the
   writing-rules skill write there. Set `HOOKIFY_RULES_DIR` to use a different
   directory. A project rule with the same `name` replaces the user rule, and

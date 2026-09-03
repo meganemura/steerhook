@@ -16,7 +16,7 @@ Show all configured hookify rules in the project.
    pattern: "*.md"
    path: the home directory + "/.claude/hookify"
    ```
-   If the project also holds `.claude/hookify.*.local.md` files, include them and mark them as project rules.
+   If the project also holds `.claude/hookify/*.md` files, include them and mark them as project rules.
 
 2. For each file found:
    - Use Read tool to read the file

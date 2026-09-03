@@ -2,7 +2,8 @@
 # Modified in the meganemura/hookify fork: rules also load from ~/.claude/hookify/.
 """Configuration loader for hookify plugin.
 
-Loads and parses .claude/hookify.*.local.md files.
+Loads and parses the rule files in ~/.claude/hookify/ and in the
+project's .claude/hookify/.
 """
 
 import os
@@ -225,10 +226,10 @@ def load_rules(event: Optional[str] = None, cwd: Optional[str] = None) -> List[R
     user_files = sorted(glob.glob(os.path.join(user_dir, '*.md')))
     user_rules = _load_rule_files(user_files, event)
 
-    # Find all hookify.*.local.md files
-    # Fork: a plugin hook can run in the plugin's own directory, so the
-    # project is taken from the hook input's cwd, not the process cwd.
-    pattern = os.path.join(cwd or '.', '.claude', 'hookify.*.local.md')
+    # Fork: the project directory has the same shape as the user directory.
+    # A plugin hook can run in the plugin's own directory, so the project is
+    # taken from the hook input's cwd, not the process cwd.
+    pattern = os.path.join(cwd or '.', '.claude', 'hookify', '*.md')
     files = sorted(glob.glob(pattern))
     project_rules = _load_rule_files(files, event)
 

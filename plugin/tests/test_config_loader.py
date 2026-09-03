@@ -33,7 +33,7 @@ class LoadRulesTest(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
     def project_rule(self, name, **kwargs):
-        write_rule(os.path.join(self.project, '.claude', f'hookify.{name}.local.md'), name, **kwargs)
+        write_rule(os.path.join(self.project, '.claude', 'hookify', f'{name}.md'), name, **kwargs)
 
     def user_rule(self, name, **kwargs):
         write_rule(os.path.join(self.user_dir, f'{name}.md'), name, **kwargs)

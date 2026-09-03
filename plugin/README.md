@@ -70,7 +70,7 @@ Enable/disable existing rules through an interactive interface.
 
 ## Rule Configuration Format
 
-Rules live in `~/.claude/hookify/*.md` and apply in every project. A project can also hold `.claude/hookify.*.local.md` files; the plugin reads both.
+Rules live in `~/.claude/hookify/*.md` and apply in every project. A project can also hold `.claude/hookify/*.md` files; the plugin reads both.
 
 ### Simple Rule (Single Pattern)
 
