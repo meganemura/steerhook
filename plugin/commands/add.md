@@ -173,7 +173,7 @@ conditions:
 
 ## Example Workflow
 
-**User says**: "/steerhook Don't use rm -rf without asking me first"
+**User says**: "/steerhook:add Don't use rm -rf without asking me first"
 
 **Your response**:
 1. Analyze: User wants to prevent rm -rf commands

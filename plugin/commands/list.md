@@ -56,7 +56,7 @@ To modify a rule: Edit the rule file directly
 To disable a rule: Set `enabled: false` in frontmatter
 To enable a rule: Set `enabled: true` in frontmatter
 To delete a rule: Remove the rule file
-To create a rule: Use `/steerhook` command
+To create a rule: Use `/steerhook:add` command
 
 **Remember**: Changes take effect immediately - no restart needed
 ```
@@ -71,13 +71,13 @@ If no steerhook rules exist:
 You haven't created any steerhook rules yet.
 
 To get started:
-1. Use `/steerhook` to analyze conversation and create rules
+1. Use `/steerhook:add` to analyze conversation and create rules
 2. Or manually create `~/.claude/steerhook/my-rule.md` files
 3. See `/steerhook:help` for documentation
 
 Example:
 ```
-/steerhook Warn me when I use console.log
+/steerhook:add Warn me when I use console.log
 ```
 
 Check `${CLAUDE_PLUGIN_ROOT}/examples/` for example rule files.

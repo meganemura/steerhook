@@ -49,9 +49,9 @@ The message body is what Claude sees when the rule triggers.
 
 ### 3. Creating Rules
 
-**Option A: Use /steerhook command**
+**Option A: Use /steerhook:add command**
 ```
-/steerhook Don't use console.log in production files
+/steerhook:add Don't use console.log in production files
 ```
 
 This analyzes your request and creates the appropriate rule file.
@@ -61,14 +61,14 @@ Create `~/.claude/steerhook/my-rule.md` with the format above.
 
 **Option C: Analyze conversation**
 ```
-/steerhook
+/steerhook:add
 ```
 
 Without arguments, steerhook analyzes recent conversation to find behaviors you want to prevent.
 
 ## Available Commands
 
-- **`/steerhook`** - Create hooks from conversation analysis or explicit instructions
+- **`/steerhook:add`** - Create hooks from conversation analysis or explicit instructions
 - **`/steerhook:help`** - Show this help (what you're reading now)
 - **`/steerhook:list`** - List all configured hooks
 - **`/steerhook:configure`** - Enable/disable existing hooks interactively
@@ -160,7 +160,7 @@ Use Python regex syntax:
 
 1. Create your first rule:
    ```
-   /steerhook Warn me when I try to use rm -rf
+   /steerhook:add Warn me when I try to use rm -rf
    ```
 
 2. Try to trigger it:

@@ -22,7 +22,7 @@ If the project also holds `.claude/steerhook/*.md` files, include them.
 
 If no rules found, inform user:
 ```
-No steerhook rules configured yet. Use `/steerhook` to create your first rule.
+No steerhook rules configured yet. Use `/steerhook:add` to create your first rule.
 ```
 
 ### 2. Read Current State
@@ -120,7 +120,7 @@ Changes apply immediately - no restart needed
 ## Edge Cases
 
 **No rules to configure:**
-- Show message about using `/steerhook` to create rules first
+- Show message about using `/steerhook:add` to create rules first
 
 **User selects no rules:**
 - Inform that no changes were made

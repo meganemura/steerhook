@@ -18,7 +18,7 @@ The steerhook plugin makes it simple to create hooks without editing complex `ho
 ### 1. Create Your First Rule
 
 ```bash
-/steerhook Warn me when I use rm -rf commands
+/steerhook:add Warn me when I use rm -rf commands
 ```
 
 This analyzes your request and creates `~/.claude/steerhook/warn-rm.md`.
@@ -36,17 +36,17 @@ You should see the warning message immediately!
 
 ## Usage
 
-### Main Command: /steerhook
+### Main Command: /steerhook:add
 
 **With arguments:**
 ```
-/steerhook Don't use console.log in TypeScript files
+/steerhook:add Don't use console.log in TypeScript files
 ```
 Creates a rule from your explicit instructions.
 
 **Without arguments:**
 ```
-/steerhook
+/steerhook:add
 ```
 Analyzes recent conversation to find behaviors you've corrected or been frustrated by.
 

@@ -21,7 +21,7 @@ plugin for Claude Code (Apache 2.0, see `NOTICE`).
   `additionalContext` (warn). The user still sees it as `systemMessage`.
 - **Rules live in `~/.claude/steerhook/*.md`.** hookify reads rules only from
   the project. Rules about your own tools apply in every project, so they need
-  one place. The `/steerhook` command and the writing-rules skill write there.
+  one place. The `/steerhook:add` command and the writing-rules skill write there.
   Set `STEERHOOK_RULES_DIR` to use a different directory.
 - **A project can override a rule.** A file in the project's
   `.claude/steerhook/` with the same `name` replaces the user rule. With
@@ -66,7 +66,7 @@ Do not run `codex exec` from Bash. Send the task to the `codex:codex-rescue`
 subagent with `--wait`, so the completion arrives as an agent notification.
 ```
 
-`/steerhook <what to prevent>` writes a rule for you. `/steerhook:list` shows
+`/steerhook:add <what to prevent>` writes a rule for you. `/steerhook:list` shows
 the rules that are loaded. The rule format is hookify's; see
 `plugin/README.md`.
 
