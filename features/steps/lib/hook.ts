@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Sandbox } from "./sandbox.js";
+import { redact, type Sandbox } from "./sandbox.js";
 
 export type HookEvent = "PreToolUse" | "Stop" | "UserPromptSubmit";
 
@@ -54,16 +54,18 @@ export async function runHook(
   if (sandbox.rulesDirOverride) env.STEERHOOK_RULES_DIR = sandbox.rulesDirOverride;
   const stdin = JSON.stringify({ session_id: "scenario", cwd: sandbox.project, hook_event_name: event, ...input });
   const proc = spawnSync("sh", ["-c", command], { cwd: sandbox.elsewhere, env, input: stdin, encoding: "utf8" });
-  await evidence.attach("hook.command.txt", command);
-  await evidence.attach("hook.stdin.json", stdin);
-  await evidence.attach("hook.stdout.txt", proc.stdout ?? "");
-  await evidence.attach("hook.stderr.txt", proc.stderr ?? "");
+  const stdout = redact(sandbox, proc.stdout ?? "");
+  const stderr = redact(sandbox, proc.stderr ?? "");
+  await evidence.attach("hook.command.txt", redact(sandbox, command));
+  await evidence.attach("hook.stdin.json", redact(sandbox, stdin));
+  await evidence.attach("hook.stdout.txt", stdout);
+  await evidence.attach("hook.stderr.txt", stderr);
   if (proc.error) throw proc.error;
   let output: Record<string, unknown>;
   try {
-    output = JSON.parse(proc.stdout) as Record<string, unknown>;
+    output = JSON.parse(stdout) as Record<string, unknown>;
   } catch {
-    throw new Error(`hook stdout is not JSON (exit ${proc.status}): ${JSON.stringify(proc.stdout)}; stderr: ${proc.stderr}`);
+    throw new Error(`hook stdout is not JSON (exit ${proc.status}): ${JSON.stringify(stdout)}; stderr: ${stderr}`);
   }
   return { exit_code: proc.status ?? -1, output };
 }

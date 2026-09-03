@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { defineStep, z } from "nukadoko";
-import type { Sandbox } from "./lib/sandbox.js";
+import { redact, type Sandbox } from "./lib/sandbox.js";
 
 export default defineStep({
   pattern: "STEERHOOK_NODE names a node that does not exist",
@@ -16,6 +16,6 @@ export default defineStep({
     const sb = sandbox as Sandbox;
     const node = join(sb.root, "no-such-node");
     sb.nodeOverride = node;
-    return { node };
+    return { node: redact(sb, node) };
   },
 });

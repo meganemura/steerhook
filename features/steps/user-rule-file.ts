@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { defineStep, z } from "nukadoko";
 import { writeRuleFile } from "./lib/rules.js";
-import type { Sandbox } from "./lib/sandbox.js";
+import { redact, type Sandbox } from "./lib/sandbox.js";
 
 export default defineStep({
   pattern: "the user rule file {file:string} contains",
@@ -15,6 +15,6 @@ export default defineStep({
   mutates: true,
   async run({ sandbox }, args) {
     const sb = sandbox as Sandbox;
-    return { file: writeRuleFile(join(sb.userRules, args.file), args.content.trimEnd() + "\n") };
+    return { file: redact(sb, writeRuleFile(join(sb.userRules, args.file), args.content.trimEnd() + "\n")) };
   },
 });

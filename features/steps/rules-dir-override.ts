@@ -1,7 +1,7 @@
 import { mkdirSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { defineStep, z } from "nukadoko";
-import type { Sandbox } from "./lib/sandbox.js";
+import { redact, type Sandbox } from "./lib/sandbox.js";
 
 export default defineStep({
   pattern: "the user rules are moved to a directory named by STEERHOOK_RULES_DIR",
@@ -16,6 +16,6 @@ export default defineStep({
     mkdirSync(sb.userRules, { recursive: true });
     renameSync(sb.userRules, dir);
     sb.rulesDirOverride = dir;
-    return { dir };
+    return { dir: redact(sb, dir) };
   },
 });

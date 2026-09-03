@@ -1,6 +1,6 @@
 import { defineStep, z } from "nukadoko";
 import { actionOf, writeRule } from "./lib/rules.js";
-import type { Sandbox } from "./lib/sandbox.js";
+import { redact, type Sandbox } from "./lib/sandbox.js";
 
 export default defineStep({
   pattern: "the user rule {name:string} {verb:word} file edits that match {pattern:string}",
@@ -17,6 +17,6 @@ export default defineStep({
   async run({ sandbox }, args) {
     const sb = sandbox as Sandbox;
     const file = writeRule(sb.userRules, args.name, { enabled: true, event: "file", pattern: args.pattern, action: actionOf(args.verb) }, args.message);
-    return { file };
+    return { file: redact(sb, file) };
   },
 });

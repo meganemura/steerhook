@@ -1,6 +1,6 @@
 import { defineStep, z } from "nukadoko";
 import { writeRule } from "./lib/rules.js";
-import type { Sandbox } from "./lib/sandbox.js";
+import { redact, type Sandbox } from "./lib/sandbox.js";
 
 export default defineStep({
   pattern: "the project rule {name:string} is disabled",
@@ -12,6 +12,6 @@ export default defineStep({
   async run({ sandbox }, args) {
     const sb = sandbox as Sandbox;
     const file = writeRule(sb.projectRules, args.name, { enabled: false, event: "bash", pattern: "disabled", action: "block" }, "Switched off in this project.");
-    return { file };
+    return { file: redact(sb, file) };
   },
 });
