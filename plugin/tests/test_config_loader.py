@@ -13,10 +13,10 @@ if PLUGIN_ROOT not in sys.path:
 from core.config_loader import extract_frontmatter, load_rules  # noqa: E402
 
 
-def write_rule(path, name, pattern='foo', action='warn', event='bash', message='msg'):
+def write_rule(path, name, pattern='foo', action='warn', event='bash', message='msg', enabled='true'):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w') as f:
-        f.write(f'---\nname: {name}\nenabled: true\nevent: {event}\n'
+        f.write(f'---\nname: {name}\nenabled: {enabled}\nevent: {event}\n'
                 f'pattern: {pattern}\naction: {action}\n---\n\n{message}\n')
 
 
@@ -53,6 +53,15 @@ class LoadRulesTest(unittest.TestCase):
         rules = load_rules(event='bash', cwd=self.project)
 
         self.assertEqual([(r.name, r.message) for r in rules], [('shared', 'project version')])
+
+    def test_disabled_project_rule_switches_off_user_rule(self):
+        self.user_rule('shared')
+        self.project_rule('shared', enabled='false')
+        self.project_rule('other', enabled='false')
+
+        names = [r.name for r in load_rules(event='bash', cwd=self.project)]
+
+        self.assertEqual(names, [])
 
     def test_cwd_argument_resolves_project_rules_without_chdir(self):
         self.project_rule('from-cwd')

@@ -232,12 +232,15 @@ def load_rules(event: Optional[str] = None, cwd: Optional[str] = None) -> List[R
     files = sorted(glob.glob(pattern))
     project_rules = _load_rule_files(files, event)
 
+    # A disabled project rule also hides the user rule of the same name, so
+    # a project can switch a user rule off. Disabled rules drop out last.
     project_names = {rule.name for rule in project_rules}
-    return [r for r in user_rules if r.name not in project_names] + project_rules
+    rules = [r for r in user_rules if r.name not in project_names] + project_rules
+    return [r for r in rules if r.enabled]
 
 
 def _load_rule_files(files: List[str], event: Optional[str]) -> List[Rule]:
-    """Load the enabled rules that match the event from the given files."""
+    """Load the rules that match the event from the given files."""
     rules = []
 
     for file_path in files:
@@ -251,9 +254,7 @@ def _load_rule_files(files: List[str], event: Optional[str]) -> List[Rule]:
                 if rule.event != 'all' and rule.event != event:
                     continue
 
-            # Only include enabled rules
-            if rule.enabled:
-                rules.append(rule)
+            rules.append(rule)
 
         except (IOError, OSError, PermissionError) as e:
             # File I/O errors - log and continue

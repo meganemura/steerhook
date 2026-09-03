@@ -14,7 +14,8 @@ warns before a tool runs.
   the project's `.claude/` directory. Rules about your own tools apply in every
   project, so they need one place. The `/hookify` command and the
   writing-rules skill write there. Set `HOOKIFY_RULES_DIR` to use a different
-  directory. A project rule with the same `name` replaces the user rule.
+  directory. A project rule with the same `name` replaces the user rule, and
+  a disabled one switches the user rule off in that project.
 - **Project rules resolve from the hook's `cwd`**, not from the process working
   directory. A plugin hook can run in the plugin's own directory, and then
   upstream finds no rule.
