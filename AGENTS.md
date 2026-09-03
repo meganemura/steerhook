@@ -29,6 +29,12 @@ Follow ASD-STE100 Simplified Technical English.
   files carry a notice that they changed: keep the line at the top of each
   modified Python file.
 - Do not add Python dependencies. Upstream runs on the stdlib and Python 3.7+.
-- Tests are `python3 -m unittest discover -s plugin/tests`.
+- Unit tests are `python3 -m unittest discover -s plugin/tests`.
+- Acceptance scenarios are Gherkin under `features/`, run by nukadoko
+  (`npm install`, then `npx nuka check` and `npx nuka run features`). They
+  drive the hook scripts through `hooks.json`, the way Claude Code does, so
+  they do not depend on the implementation language. Each feature has an
+  acceptance record beside it; `npx nuka accept <feature>` writes a new one
+  after a green run on a clean tree.
 - Development loop: `claude --plugin-dir "$PWD/plugin"` loads the working tree
   for one session. Rules for a live test go in `~/.claude/steerhook/`.

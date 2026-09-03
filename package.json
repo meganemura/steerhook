@@ -1,0 +1,13 @@
+{
+  "name": "steerhook",
+  "private": true,
+  "type": "module",
+  "description": "Acceptance scenarios for the steerhook plugin. The plugin itself has no dependencies.",
+  "scripts": {
+    "check": "nuka check",
+    "acceptance": "nuka run features"
+  },
+  "devDependencies": {
+    "nukadoko": "0.11.0"
+  }
+}

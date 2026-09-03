@@ -72,12 +72,20 @@ the rules that are loaded. The rule format is hookify's; see
 
 ## Develop
 
+The plugin runs on the Python standard library, so there is nothing to
+install for the plugin itself.
+
 ```sh
-python3 -m unittest discover -s plugin/tests
+python3 -m unittest discover -s plugin/tests   # unit tests
+npm install                                    # nukadoko, for the scenarios
+npx nuka check                                 # static check of features and steps
+npx nuka run features                          # run every scenario
 ```
 
-The plugin runs on the Python standard library, so there is nothing to
-install.
+The scenarios under `features/` are the behavior contract. They run the hook
+scripts through `hooks.json` with JSON on stdin, the way Claude Code runs
+them. `STEERHOOK_PLUGIN_ROOT` points them at another implementation of the
+same contract.
 
 ## License
 
