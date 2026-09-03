@@ -1,130 +1,31 @@
 ---
-description: Enable or disable steerhook rules interactively
+description: Switch steerhook rules on or off
 allowed-tools: ["Glob", "Read", "Edit", "AskUserQuestion", "Skill"]
 ---
 
-# Configure steerhook Rules
+# steerhook:configure
 
-**Load steerhook:writing-rules skill first** to understand rule format.
-
-Enable or disable existing steerhook rules using an interactive interface.
+Switch rules on and off by editing their `enabled` line.
 
 ## Steps
 
-### 1. Find Existing Rules
+1. Find the rule files: Glob `*.md` in `<home>/.claude/steerhook` (expand
+   `~`) and in `.claude/steerhook` under the current working directory.
+   With no file found, say so and point to `/steerhook:add`.
+2. Read each file and take `name` and `enabled` from the frontmatter.
+3. Ask with AskUserQuestion, multi-select, which rules to toggle. Label each
+   option `<name> (user, on)` or `<name> (project, off)`; describe it with
+   the first line of its message. At most four options per question; ask
+   again for the rest.
+4. For each chosen rule, use the Edit tool on that file: replace
+   `enabled: true` with `enabled: false`, or the reverse. Touch nothing
+   else in the file.
+5. Print what changed: switched on, switched off, unchanged. Say that the
+   change applies on the next tool call.
 
-Use Glob tool to find all steerhook rule files:
-```
-pattern: "*.md"
-path: the home directory + "/.claude/steerhook"
-```
-If the project also holds `.claude/steerhook/*.md` files, include them.
+## Notes
 
-If no rules found, inform user:
-```
-No steerhook rules configured yet. Use `/steerhook:add` to create your first rule.
-```
-
-### 2. Read Current State
-
-For each rule file:
-- Read the file
-- Extract `name` and `enabled` fields from frontmatter
-- Build list of rules with current state
-
-### 3. Ask User Which Rules to Toggle
-
-Use AskUserQuestion to let user select rules:
-
-```json
-{
-  "questions": [
-    {
-      "question": "Which rules would you like to enable or disable?",
-      "header": "Configure",
-      "multiSelect": true,
-      "options": [
-        {
-          "label": "warn-dangerous-rm (currently enabled)",
-          "description": "Warns about rm -rf commands"
-        },
-        {
-          "label": "warn-console-log (currently disabled)",
-          "description": "Warns about console.log in code"
-        },
-        {
-          "label": "require-tests (currently enabled)",
-          "description": "Requires tests before stopping"
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Option format:**
-- Label: `{rule-name} (currently {enabled|disabled})`
-- Description: Brief description from rule's message or pattern
-
-### 4. Parse User Selection
-
-For each selected rule:
-- Determine current state from label (enabled/disabled)
-- Toggle state: enabled → disabled, disabled → enabled
-
-### 5. Update Rule Files
-
-For each rule to toggle:
-- Use Read tool to read current content
-- Use Edit tool to change `enabled: true` to `enabled: false` (or vice versa)
-- Handle both with and without quotes
-
-**Edit pattern for enabling:**
-```
-old_string: "enabled: false"
-new_string: "enabled: true"
-```
-
-**Edit pattern for disabling:**
-```
-old_string: "enabled: true"
-new_string: "enabled: false"
-```
-
-### 6. Confirm Changes
-
-Show user what was changed:
-
-```
-## steerhook Rules Updated
-
-**Enabled:**
-- warn-console-log
-
-**Disabled:**
-- warn-dangerous-rm
-
-**Unchanged:**
-- require-tests
-
-Changes apply immediately - no restart needed
-```
-
-## Important Notes
-
-- Changes take effect immediately on next tool use
-- You can also manually edit ~/.claude/steerhook/*.md files
-- To permanently remove a rule, delete its file
-- Use `/steerhook:list` to see all configured rules
-
-## Edge Cases
-
-**No rules to configure:**
-- Show message about using `/steerhook:add` to create rules first
-
-**User selects no rules:**
-- Inform that no changes were made
-
-**File read/write errors:**
-- Inform user of specific error
-- Suggest manual editing as fallback
+- A user rule applies in every project. To switch it off in one project
+  only, write a project rule with the same `name` and `enabled: false` in
+  `<project>/.claude/steerhook/`, instead of editing the user rule.
+- To remove a rule, delete its file.

@@ -1,84 +1,53 @@
 ---
-description: List all configured steerhook rules
+description: List every steerhook rule that is loaded, from the user directory and the project
 allowed-tools: ["Glob", "Read", "Skill"]
 ---
 
-# List steerhook Rules
+# steerhook:list
 
-**Load steerhook:writing-rules skill first** to understand rule format.
-
-Show all configured steerhook rules in the project.
+Show every rule steerhook reads for this project.
 
 ## Steps
 
-1. Use Glob tool to find all steerhook rule files:
-   ```
-   pattern: "*.md"
-   path: the home directory + "/.claude/steerhook"
-   ```
-   If the project also holds `.claude/steerhook/*.md` files, include them and mark them as project rules.
-
-2. For each file found:
-   - Use Read tool to read the file
-   - Extract frontmatter fields: name, enabled, event, pattern
-   - Extract message preview (first 100 chars)
-
-3. Present results in a table:
+1. Find the user rules with the Glob tool: pattern `*.md`, path
+   `<home>/.claude/steerhook` (expand `~`). Find the project rules the same
+   way in `.claude/steerhook` under the current working directory.
+2. Read each file. Take `name`, `enabled`, `event`, `action`, and `pattern`
+   (or the first condition's `pattern`) from the frontmatter, and the first
+   line of the message.
+3. Print one table:
 
 ```
-## Configured steerhook Rules
-
-| Name | Enabled | Event | Pattern | File |
-|------|---------|-------|---------|------|
-| warn-dangerous-rm | ✅ Yes | bash | rm\s+-rf | dangerous-rm.md |
-| warn-console-log | ✅ Yes | file | console\.log\( | console-log.md |
-| check-tests | ❌ No | stop | .* | require-tests.md |
-
-**Total**: 3 rules (2 enabled, 1 disabled)
+| Name | Scope | Enabled | Event | Action | Pattern | File |
+|------|-------|---------|-------|--------|---------|------|
+| no-force-push | user | yes | bash | block | git\s+push\b... | no-force-push.md |
+| no-force-push | project | no | bash | block | ... | .claude/steerhook/no-force-push.md |
 ```
 
-4. For each rule, show a brief preview:
-```
-### warn-dangerous-rm
-**Event**: bash
-**Pattern**: `rm\s+-rf`
-**Message**: "⚠️ **Dangerous rm command detected!** This command could delete..."
+4. Under the table, say what the scopes mean when both appear: a project
+   rule with the same name as a user rule replaces it in this project, and
+   a project rule with `enabled: false` switches the user rule off here.
+5. For each rule, print its message's first line, so the user can see what
+   Claude will read.
+6. End with the totals (rules, enabled, disabled) and where to go next:
+   `/steerhook:add` to write a rule, `/steerhook:configure` to switch one on
+   or off, or edit the file. Changes take effect on the next tool call.
 
-**Status**: ✅ Active
-**File**: ~/.claude/steerhook/dangerous-rm.md
-```
+## When no rule exists
 
-5. Add helpful footer:
-```
+Say that no rule is loaded from either directory, and show the smallest
+rule file with its path, `~/.claude/steerhook/<name>.md`:
+
+```markdown
+---
+name: my-rule
+enabled: true
+event: bash
+pattern: dangerous_command
+action: block
 ---
 
-To modify a rule: Edit the rule file directly
-To disable a rule: Set `enabled: false` in frontmatter
-To enable a rule: Set `enabled: true` in frontmatter
-To delete a rule: Remove the rule file
-To create a rule: Use `/steerhook:add` command
-
-**Remember**: Changes take effect immediately - no restart needed
+Do X instead.
 ```
 
-## If No Rules Found
-
-If no steerhook rules exist:
-
-```
-## No steerhook Rules Configured
-
-You haven't created any steerhook rules yet.
-
-To get started:
-1. Use `/steerhook:add` to analyze conversation and create rules
-2. Or manually create `~/.claude/steerhook/my-rule.md` files
-3. See `/steerhook:help` for documentation
-
-Example:
-```
-/steerhook:add Warn me when I use console.log
-```
-
-Check `${CLAUDE_PLUGIN_ROOT}/examples/` for example rule files.
-```
+Point to `/steerhook:add` and `/steerhook:help`.

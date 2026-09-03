@@ -1,174 +1,79 @@
 ---
-description: Get help with the steerhook plugin
+description: Explain the steerhook plugin
 allowed-tools: ["Read"]
 ---
 
-# steerhook Plugin Help
+# steerhook:help
 
-Explain how the steerhook plugin works and how to use it.
+Explain the plugin to the user with the facts below. Keep the answer to what
+they asked; the full manual is `${CLAUDE_PLUGIN_ROOT}/README.md`.
 
-## Overview
+## What it does
 
-The steerhook plugin makes it easy to create custom hooks that prevent unwanted behaviors. Instead of editing `hooks.json` files, users create simple markdown configuration files that define patterns to watch for.
+steerhook runs before Claude Code runs a tool. A rule names a pattern that
+must not appear in a tool call and the form to use instead. When the pattern
+matches, the rule blocks the call or lets it through with a warning. In both
+cases Claude reads the rule's message at that moment, and the user sees it
+on screen.
 
-## How It Works
+## Where rules live
 
-### 1. Hook System
+- `~/.claude/steerhook/<name>.md`: the user's rules. They apply in every
+  project.
+- `<project>/.claude/steerhook/<name>.md`: a project's rules. A project rule
+  with the same `name` as a user rule replaces it; with `enabled: false` it
+  switches the user rule off in that project.
 
-steerhook installs generic hooks that run on these events:
-- **PreToolUse**: Before any tool executes (Bash, Edit, Write, etc.)
-- **Stop**: When Claude wants to stop working
-- **UserPromptSubmit**: When user submits a prompt
-
-These hooks read rule files from `~/.claude/steerhook/*.md` (and from a project's `.claude/steerhook/*.md`, if present) and check if any rules match the current operation.
-
-### 2. Configuration Files
-
-Users create rules in `~/.claude/steerhook/{rule-name}.md` files:
+## A rule file
 
 ```markdown
 ---
-name: warn-dangerous-rm
+name: no-force-push
 enabled: true
 event: bash
-pattern: rm\s+-rf
+pattern: git\s+push\b[^\n]*\s(--force\b(?!-with-lease)|-f\b)
+action: block
 ---
 
-⚠️ **Dangerous rm command detected!**
-
-This command could delete important files. Please verify the path.
+Do not force-push. Use `git push --force-with-lease`.
 ```
 
-**Key fields:**
-- `name`: Unique identifier for the rule
-- `enabled`: true/false to activate/deactivate
-- `event`: bash, file, stop, prompt, or all
-- `pattern`: Regex pattern to match
+- `event`: `bash` (the Bash tool), `file` (Edit, Write, MultiEdit), `stop`,
+  `prompt`, `all`. `stop`, `prompt`, and `all` need `conditions:` instead of
+  `pattern`.
+- `action`: `block` denies the call; `warn` lets it run and adds the message
+  to Claude's context. Default `warn`.
+- `pattern`: a JavaScript regular expression, matched without regard to
+  letter case against the whole text. Write one backslash. A value that
+  starts and ends with the same quote loses that pair.
+- The message: what the rule caught and the alternative, in a few
+  sentences.
 
-The message body is what Claude sees when the rule triggers.
+## What Claude sees
 
-### 3. Creating Rules
+| Action  | Bash and file tools                          | Stop                              | Prompt                                    |
+| ------- | -------------------------------------------- | --------------------------------- | ----------------------------------------- |
+| `block` | The call is denied; the message is the reason | Claude continues, with the reason | The prompt is rejected; the user sees why |
+| `warn`  | The call runs; the message is added context  | The user sees the message         | Claude reads the message beside the prompt |
 
-**Option A: Use /steerhook:add command**
-```
-/steerhook:add Don't use console.log in production files
-```
+## Commands
 
-This analyzes your request and creates the appropriate rule file.
+- `/steerhook:add <what to prevent>` writes a rule. Without an argument it
+  reads the conversation for things the user corrected.
+- `/steerhook:list` shows every loaded rule.
+- `/steerhook:configure` switches rules on and off.
 
-**Option B: Create manually**
-Create `~/.claude/steerhook/my-rule.md` with the format above.
+## Requirements
 
-**Option C: Analyze conversation**
-```
-/steerhook:add
-```
+Node 22.18 or later. The hooks run through `hooks/run.sh`, which finds node
+on the PATH or in the usual install places, or takes `STEERHOOK_NODE`. When
+no node is found, the message on screen says so and the call goes through.
 
-Without arguments, steerhook analyzes recent conversation to find behaviors you want to prevent.
+## When a rule does not fire
 
-## Available Commands
-
-- **`/steerhook:add`** - Create hooks from conversation analysis or explicit instructions
-- **`/steerhook:help`** - Show this help (what you're reading now)
-- **`/steerhook:list`** - List all configured hooks
-- **`/steerhook:configure`** - Enable/disable existing hooks interactively
-
-## Example Use Cases
-
-**Prevent dangerous commands:**
-```markdown
----
-name: block-chmod-777
-enabled: true
-event: bash
-pattern: chmod\s+777
----
-
-Don't use chmod 777 - it's a security risk. Use specific permissions instead.
-```
-
-**Warn about debugging code:**
-```markdown
----
-name: warn-console-log
-enabled: true
-event: file
-pattern: console\.log\(
----
-
-Console.log detected. Remember to remove debug logging before committing.
-```
-
-**Require tests before stopping:**
-```markdown
----
-name: require-tests
-enabled: true
-event: stop
-pattern: .*
----
-
-Did you run tests before finishing? Make sure `npm test` or equivalent was executed.
-```
-
-## Pattern Syntax
-
-Use JavaScript regular-expression syntax. Matching ignores letter case:
-- `\s` - whitespace
-- `\.` - literal dot
-- `|` - OR
-- `+` - one or more
-- `*` - zero or more
-- `\d` - digit
-- `[abc]` - character class
-
-**Examples:**
-- `rm\s+-rf` - matches "rm -rf"
-- `console\.log\(` - matches "console.log("
-- `(eval|exec)\(` - matches "eval(" or "exec("
-- `\.env$` - matches files ending in .env
-
-## Important Notes
-
-**No Restart Needed**: steerhook rules take effect immediately on the next tool use. The steerhook hooks are already loaded and read your rules dynamically.
-
-**Block or Warn**: Rules can either `block` operations (prevent execution) or `warn` (show message but allow). Set `action: block` or `action: warn` in the rule's frontmatter.
-
-**Rule Files**: Keep rules in `~/.claude/steerhook/`. A rule there applies in every project.
-
-**Disable Rules**: Set `enabled: false` in frontmatter or delete the file.
-
-## Troubleshooting
-
-**Hook not triggering:**
-- Check rule file is in `~/.claude/steerhook/` and ends with `.md`
-- Verify `enabled: true` in frontmatter
-- Confirm pattern is valid regex
-- Test pattern: `node -e "console.log(/your_pattern/i.test('test_text'))"`
-- Rules take effect immediately - no restart needed
-
-**Import errors:**
-- Check node is available: `node --version` (22.18 or later)
-- Verify steerhook plugin is installed correctly
-
-**Pattern not matching:**
-- Test regex separately
-- Check for escaping issues (use unquoted patterns in YAML)
-- Try simpler pattern first, then refine
-
-## Getting Started
-
-1. Create your first rule:
-   ```
-   /steerhook:add Warn me when I try to use rm -rf
-   ```
-
-2. Try to trigger it:
-   - Ask Claude to run `rm -rf /tmp/test`
-   - You should see the warning
-
-4. Refine the rule by editing `~/.claude/steerhook/warn-rm.md`
-
-5. Create more rules as you encounter unwanted behaviors
-
-For more examples, check the `${CLAUDE_PLUGIN_ROOT}/examples/` directory.
+1. `/steerhook:list` shows whether the file was read.
+2. The file ends with `.md` and has `enabled: true` with no `#` after it.
+3. The `event` matches the tool. `stop`, `prompt`, and `all` need
+   `conditions`.
+4. Test the pattern: `node -e "console.log(/<pattern>/i.test('<text>'))"`.
+5. Rules take effect on the next tool call; no restart.

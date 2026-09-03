@@ -1,224 +1,84 @@
 ---
-description: Create hooks to prevent unwanted behaviors from conversation analysis or explicit instructions
-argument-hint: Optional specific behavior to address
-allowed-tools: ["Read", "Write", "AskUserQuestion", "Task", "Grep", "TodoWrite", "Skill"]
+description: Write a steerhook rule from the user's words, or from what the conversation shows they corrected
+argument-hint: What to prevent, and what to do instead
+allowed-tools: ["Read", "Write", "Glob", "AskUserQuestion", "Agent", "Task", "Skill"]
 ---
 
-# steerhook - Create Hooks from Unwanted Behaviors
+# steerhook:add
 
-**FIRST: Load the steerhook:writing-rules skill** using the Skill tool to understand rule file format and syntax.
+Write one or more rule files into `~/.claude/steerhook/`. A rule names a
+pattern Claude must not run and the form to use instead; Claude reads the
+message at the moment the rule fires.
 
-Create hook rules to prevent problematic behaviors by analyzing the conversation or from explicit user instructions.
+**First, load the `steerhook:writing-rules` skill** with the Skill tool. It
+holds the file format, the pattern rules, and how to write the message.
 
-## Your Task
+## 1. Find out what to prevent
 
-You will help the user create steerhook rules to prevent unwanted behaviors. Follow these steps:
+**With `$ARGUMENTS`:** the user said what to prevent: `$ARGUMENTS`. Read the
+last few exchanges for an example of it happening, so the pattern matches
+the real command and the message names the real alternative.
 
-### Step 1: Gather Behavior Information
+**Without arguments:** run the `steerhook:conversation-analyzer` agent with
+the Agent tool (`subagent_type: "steerhook:conversation-analyzer"`). It reads
+the conversation for things the user corrected or asked not to do, and
+returns one finding per behavior with a pattern and an alternative.
 
-**If $ARGUMENTS is provided:**
-- User has given specific instructions: `$ARGUMENTS`
-- Still analyze recent conversation (last 10-15 user messages) for additional context
-- Look for examples of the behavior happening
+## 2. Confirm with the user
 
-**If $ARGUMENTS is empty:**
-- Launch the conversation-analyzer agent to find problematic behaviors
-- Agent will scan user prompts for frustration signals
-- Agent will return structured findings
+Use AskUserQuestion. Keep to at most four candidates per question.
 
-**To analyze conversation:**
-Use the Task tool to launch conversation-analyzer agent:
-```
-{
-  "subagent_type": "general-purpose",
-  "description": "Analyze conversation for unwanted behaviors",
-  "prompt": "You are analyzing a Claude Code conversation to find behaviors the user wants to prevent.
+1. Which findings become rules (multi-select). Label each with the move it
+   stops, describe why it came up.
+2. For each chosen rule: `block` (deny the call, Claude reads the message as
+   the reason) or `warn` (let it run, Claude reads the message as context).
+   Recommend `block` when the alternative is right every time.
 
-Read user messages in the current conversation and identify:
-1. Explicit requests to avoid something (\"don't do X\", \"stop doing Y\")
-2. Corrections or reversions (user fixing Claude's actions)
-3. Frustrated reactions (\"why did you do X?\", \"I didn't ask for that\")
-4. Repeated issues (same problem multiple times)
+Show the pattern and the message you intend to write. The user may change
+either.
 
-For each issue found, extract:
-- What tool was used (Bash, Edit, Write, etc.)
-- Specific pattern or command
-- Why it was problematic
-- User's stated reason
+## 3. Write the files
 
-Return findings as a structured list with:
-- category: Type of issue
-- tool: Which tool was involved
-- pattern: Regex or literal pattern to match
-- context: What happened
-- severity: high/medium/low
+Rule files go in the user's rule directory, `~/.claude/steerhook/`, never in
+the project and never in the plugin directory. A rule there applies in every
+project.
 
-Focus on the most recent issues (last 20-30 messages). Don't go back further unless explicitly asked."
-}
-```
+1. Expand `~` to the home directory and write each rule with the Write tool
+   to `<home>/.claude/steerhook/<name>.md`. The Write tool creates the
+   directory when it does not exist.
+2. Name the file after the move it stops, in kebab-case: `no-force-push`,
+   `warn-console-log`.
+3. Use this shape:
 
-### Step 2: Present Findings to User
-
-After gathering behaviors (from arguments or agent), present to user using AskUserQuestion:
-
-**Question 1: Which behaviors to steerhook?**
-- Header: "Create Rules"
-- multiSelect: true
-- Options: List each detected behavior (max 4)
-  - Label: Short description (e.g., "Block rm -rf")
-  - Description: Why it's problematic
-
-**Question 2: For each selected behavior, ask about action:**
-- "Should this block the operation or just warn?"
-- Options:
-  - "Just warn" (action: warn - shows message but allows)
-  - "Block operation" (action: block - prevents execution)
-
-**Question 3: Ask for example patterns:**
-- "What patterns should trigger this rule?"
-- Show detected patterns
-- Allow user to refine or add more
-
-### Step 3: Generate Rule Files
-
-For each confirmed behavior, create a `~/.claude/steerhook/{rule-name}.md` file:
-
-**Rule naming convention:**
-- Use kebab-case
-- Be descriptive: `block-dangerous-rm`, `warn-console-log`, `require-tests-before-stop`
-- Start with action verb: block, warn, prevent, require
-
-**File format:**
 ```markdown
 ---
-name: {rule-name}
+name: <name>
 enabled: true
-event: {bash|file|stop|prompt|all}
-pattern: {regex pattern}
-action: {warn|block}
+event: bash
+pattern: <regular expression>
+action: block
 ---
 
-{Message to show Claude when rule triggers}
+<What the rule caught, and the alternative Claude should use.>
 ```
 
-**Action values:**
-- `warn`: Show message but allow operation (default)
-- `block`: Prevent operation or stop session
+For an Edit or Write rule use `event: file`. For a stop or prompt rule use
+`conditions:`; the skill shows the form.
 
-**For more complex rules (multiple conditions):**
-```markdown
----
-name: {rule-name}
-enabled: true
-event: file
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: \.env$
-  - field: new_text
-    operator: contains
-    pattern: API_KEY
----
+## 4. Confirm
 
-{Warning message}
-```
+List what was written, with each file's path, event, action, and pattern.
+Tell the user the rules are active on the next tool call; no restart. Offer
+`/steerhook:list` to see every rule and `/steerhook:configure` to switch one
+off.
 
-### Step 4: Create Files and Confirm
+## If something goes wrong
 
-**IMPORTANT**: Rule files go in the user's rule directory `~/.claude/steerhook/`, NOT in the project and NOT in the plugin directory. A rule there applies in every project.
-
-1. Use the Write tool to create each `~/.claude/steerhook/{name}.md` file
-   - Use the absolute path: expand `~` to the home directory
-   - The Write tool creates the directory when it does not exist
-
-2. Show user what was created:
-   ```
-   Created 3 steerhook rules:
-   - ~/.claude/steerhook/dangerous-rm.md
-   - ~/.claude/steerhook/console-log.md
-   - ~/.claude/steerhook/sensitive-files.md
-
-   These rules will trigger on:
-   - dangerous-rm: Bash commands matching "rm -rf"
-   - console-log: Edits adding console.log statements
-   - sensitive-files: Edits to .env or credentials files
-   ```
-
-3. Verify files were created in the correct location by listing them
-
-4. Inform user: **"Rules are active immediately - no restart needed!"**
-
-   The steerhook hooks are already loaded and will read your new rules on the next tool use.
-
-## Event Types Reference
-
-- **bash**: Matches Bash tool commands
-- **file**: Matches Edit, Write, MultiEdit tools
-- **stop**: Matches when agent wants to stop (use for completion checks)
-- **prompt**: Matches when user submits prompts
-- **all**: Matches all events
-
-## Pattern Writing Tips
-
-**Bash patterns:**
-- Match dangerous commands: `rm\s+-rf|chmod\s+777|dd\s+if=`
-- Match specific tools: `npm\s+install\s+|pip\s+install`
-
-**File patterns:**
-- Match code patterns: `console\.log\(|eval\(|innerHTML\s*=`
-- Match file paths: `\.env$|\.git/|node_modules/`
-
-**Stop patterns:**
-- Check for missing steps: (check transcript or completion criteria)
-
-## Example Workflow
-
-**User says**: "/steerhook:add Don't use rm -rf without asking me first"
-
-**Your response**:
-1. Analyze: User wants to prevent rm -rf commands
-2. Ask: "Should I block this command or just warn you?"
-3. User selects: "Just warn"
-4. Create `~/.claude/steerhook/dangerous-rm.md`:
-   ```markdown
-   ---
-   name: warn-dangerous-rm
-   enabled: true
-   event: bash
-   pattern: rm\s+-rf
-   ---
-
-   ⚠️ **Dangerous rm command detected**
-
-   You requested to be warned before using rm -rf.
-   Please verify the path is correct.
-   ```
-5. Confirm: "Created steerhook rule. It's active immediately - try triggering it!"
-
-## Important Notes
-
-- **No restart needed**: Rules take effect immediately on the next tool use
-- **File location**: Create files in `~/.claude/steerhook/`, NOT in the project and NOT in the plugin directory
-- **Regex syntax**: Use JavaScript regular-expression syntax (no need to escape in the frontmatter); matching ignores letter case
-- **Action types**: Rules can `warn` (default) or `block` operations
-- **Testing**: Test rules immediately after creating them
-
-## Troubleshooting
-
-**If rule file creation fails:**
-1. Use the absolute path: `{home}/.claude/steerhook/{name}.md`
-2. Verify file was created with Glob or ls
-
-**If rule doesn't trigger after creation:**
-1. Verify file is in `~/.claude/steerhook/` and ends with `.md`
-2. Check file with Read tool to ensure pattern is correct
-3. Test pattern with: `node -e "console.log(/pattern/i.test('test text'))"`
-4. Verify `enabled: true` in frontmatter
-5. Remember: Rules work immediately, no restart needed
-
-**If blocking seems too strict:**
-1. Change `action: block` to `action: warn` in the rule file
-2. Or adjust the pattern to be more specific
-3. Changes take effect on next tool use
-
-Use TodoWrite to track your progress through the steps.
+- The Write tool refuses the path: use the absolute path,
+  `/Users/<you>/.claude/steerhook/<name>.md` on macOS.
+- The rule does not fire: `/steerhook:list` shows whether it was read.
+  Check the `event`, test the pattern with
+  `node -e "console.log(/<pattern>/i.test('<command>'))"`, and remember that a
+  `#` after a value becomes part of the value.
+- The rule fires too often: narrow the pattern (`\b`, a command-word
+  prefix such as `(^|[\s;&|(])`), or change `action: block` to `warn`.
