@@ -8,7 +8,7 @@ version: 0.1.0
 
 ## Overview
 
-Hookify rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `.claude/hookify.{rule-name}.local.md` files.
+Hookify rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `~/.claude/hookify/{rule-name}.md` files and apply in every project.
 
 ## Rule File Format
 
@@ -99,7 +99,7 @@ You're adding an API key to a .env file. Ensure this file is in .gitignore!
 
 ## Message Body
 
-The markdown content after frontmatter is shown to Claude when the rule triggers.
+The markdown content after frontmatter is what Claude reads when the rule triggers: as the denial reason for `block`, as added context for `warn`. Write the alternative that the rule asks for.
 
 **Good messages:**
 - Explain what was detected
@@ -279,23 +279,23 @@ Better: `rm\s+-rf`
 - YAML quoted strings: `"pattern"` requires double backslashes `\\s`
 - YAML unquoted: `pattern: \s` works as-is
 - **Recommendation**: Use unquoted patterns in YAML
+- A value whose first and last characters are the same quote loses that pair. Wrap such a pattern in `(?:...)`
 
 ## File Organization
 
-**Location:** All rules in `.claude/` directory
-**Naming:** `.claude/hookify.{descriptive-name}.local.md`
-**Gitignore:** Add `.claude/*.local.md` to `.gitignore`
+**Location:** `~/.claude/hookify/`, the user's rule directory. A rule there applies in every project.
+**Naming:** `~/.claude/hookify/{descriptive-name}.md`
+**Project rules:** A project can also hold `.claude/hookify.{name}.local.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule.
 
 **Good names:**
-- `hookify.dangerous-rm.local.md`
-- `hookify.console-log.local.md`
-- `hookify.require-tests.local.md`
-- `hookify.sensitive-files.local.md`
+- `dangerous-rm.md`
+- `console-log.md`
+- `require-tests.md`
+- `sensitive-files.md`
 
 **Bad names:**
-- `hookify.rule1.local.md` (not descriptive)
-- `hookify.md` (missing .local)
-- `danger.local.md` (missing hookify prefix)
+- `rule1.md` (not descriptive)
+- `dangerous-rm.txt` (not `.md`, so the plugin does not read it)
 
 ## Workflow
 
@@ -305,19 +305,19 @@ Better: `rm\s+-rf`
 2. Determine which tool is involved (Bash, Edit, etc.)
 3. Choose event type (bash, file, stop, etc.)
 4. Write regex pattern
-5. Create `.claude/hookify.{name}.local.md` file in project root
+5. Create `~/.claude/hookify/{name}.md`
 6. Test immediately - rules are read dynamically on next tool use
 
 ### Refining a Rule
 
-1. Edit the `.local.md` file
+1. Edit the rule file
 2. Adjust pattern or message
 3. Test immediately - changes take effect on next tool use
 
 ### Disabling a Rule
 
 **Temporary:** Set `enabled: false` in frontmatter
-**Permanent:** Delete the `.local.md` file
+**Permanent:** Delete the rule file
 
 ## Examples
 

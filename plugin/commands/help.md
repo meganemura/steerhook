@@ -20,11 +20,11 @@ Hookify installs generic hooks that run on these events:
 - **Stop**: When Claude wants to stop working
 - **UserPromptSubmit**: When user submits a prompt
 
-These hooks read configuration files from `.claude/hookify.*.local.md` and check if any rules match the current operation.
+These hooks read rule files from `~/.claude/hookify/*.md` (and from a project's `.claude/hookify.*.local.md`, if present) and check if any rules match the current operation.
 
 ### 2. Configuration Files
 
-Users create rules in `.claude/hookify.{rule-name}.local.md` files:
+Users create rules in `~/.claude/hookify/{rule-name}.md` files:
 
 ```markdown
 ---
@@ -57,7 +57,7 @@ The message body is what Claude sees when the rule triggers.
 This analyzes your request and creates the appropriate rule file.
 
 **Option B: Create manually**
-Create `.claude/hookify.my-rule.local.md` with the format above.
+Create `~/.claude/hookify/my-rule.md` with the format above.
 
 **Option C: Analyze conversation**
 ```
@@ -130,18 +130,18 @@ Use Python regex syntax:
 
 ## Important Notes
 
-**No Restart Needed**: Hookify rules (`.local.md` files) take effect immediately on the next tool use. The hookify hooks are already loaded and read your rules dynamically.
+**No Restart Needed**: Hookify rules take effect immediately on the next tool use. The hookify hooks are already loaded and read your rules dynamically.
 
 **Block or Warn**: Rules can either `block` operations (prevent execution) or `warn` (show message but allow). Set `action: block` or `action: warn` in the rule's frontmatter.
 
-**Rule Files**: Keep rules in `.claude/hookify.*.local.md` - they should be git-ignored (add to .gitignore if needed).
+**Rule Files**: Keep rules in `~/.claude/hookify/`. A rule there applies in every project.
 
 **Disable Rules**: Set `enabled: false` in frontmatter or delete the file.
 
 ## Troubleshooting
 
 **Hook not triggering:**
-- Check rule file is in `.claude/` directory
+- Check rule file is in `~/.claude/hookify/` and ends with `.md`
 - Verify `enabled: true` in frontmatter
 - Confirm pattern is valid regex
 - Test pattern: `python3 -c "import re; print(re.search('your_pattern', 'test_text'))"`
@@ -167,7 +167,7 @@ Use Python regex syntax:
    - Ask Claude to run `rm -rf /tmp/test`
    - You should see the warning
 
-4. Refine the rule by editing `.claude/hookify.warn-rm.local.md`
+4. Refine the rule by editing `~/.claude/hookify/warn-rm.md`
 
 5. Create more rules as you encounter unwanted behaviors
 

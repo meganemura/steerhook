@@ -12,7 +12,8 @@ warns before a tool runs.
   `additionalContext` (warn). The user still sees it as `systemMessage`.
 - **Rules can live in `~/.claude/hookify/*.md`.** Upstream reads rules only from
   the project's `.claude/` directory. Rules about your own tools apply in every
-  project, so they need one place. Set `HOOKIFY_RULES_DIR` to use a different
+  project, so they need one place. The `/hookify` command and the
+  writing-rules skill write there. Set `HOOKIFY_RULES_DIR` to use a different
   directory. A project rule with the same `name` replaces the user rule.
 - **Project rules resolve from the hook's `cwd`**, not from the process working
   directory. A plugin hook can run in the plugin's own directory, and then

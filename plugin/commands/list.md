@@ -13,8 +13,10 @@ Show all configured hookify rules in the project.
 
 1. Use Glob tool to find all hookify rule files:
    ```
-   pattern: ".claude/hookify.*.local.md"
+   pattern: "*.md"
+   path: the home directory + "/.claude/hookify"
    ```
+   If the project also holds `.claude/hookify.*.local.md` files, include them and mark them as project rules.
 
 2. For each file found:
    - Use Read tool to read the file
@@ -28,9 +30,9 @@ Show all configured hookify rules in the project.
 
 | Name | Enabled | Event | Pattern | File |
 |------|---------|-------|---------|------|
-| warn-dangerous-rm | ✅ Yes | bash | rm\s+-rf | hookify.dangerous-rm.local.md |
-| warn-console-log | ✅ Yes | file | console\.log\( | hookify.console-log.local.md |
-| check-tests | ❌ No | stop | .* | hookify.require-tests.local.md |
+| warn-dangerous-rm | ✅ Yes | bash | rm\s+-rf | dangerous-rm.md |
+| warn-console-log | ✅ Yes | file | console\.log\( | console-log.md |
+| check-tests | ❌ No | stop | .* | require-tests.md |
 
 **Total**: 3 rules (2 enabled, 1 disabled)
 ```
@@ -43,17 +45,17 @@ Show all configured hookify rules in the project.
 **Message**: "⚠️ **Dangerous rm command detected!** This command could delete..."
 
 **Status**: ✅ Active
-**File**: .claude/hookify.dangerous-rm.local.md
+**File**: ~/.claude/hookify/dangerous-rm.md
 ```
 
 5. Add helpful footer:
 ```
 ---
 
-To modify a rule: Edit the .local.md file directly
+To modify a rule: Edit the rule file directly
 To disable a rule: Set `enabled: false` in frontmatter
 To enable a rule: Set `enabled: true` in frontmatter
-To delete a rule: Remove the .local.md file
+To delete a rule: Remove the rule file
 To create a rule: Use `/hookify` command
 
 **Remember**: Changes take effect immediately - no restart needed
@@ -70,7 +72,7 @@ You haven't created any hookify rules yet.
 
 To get started:
 1. Use `/hookify` to analyze conversation and create rules
-2. Or manually create `.claude/hookify.my-rule.local.md` files
+2. Or manually create `~/.claude/hookify/my-rule.md` files
 3. See `/hookify:help` for documentation
 
 Example:

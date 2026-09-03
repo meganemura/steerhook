@@ -21,7 +21,7 @@ The hookify plugin makes it simple to create hooks without editing complex `hook
 /hookify Warn me when I use rm -rf commands
 ```
 
-This analyzes your request and creates `.claude/hookify.warn-rm.local.md`.
+This analyzes your request and creates `~/.claude/hookify/warn-rm.md`.
 
 ### 2. Test It Immediately
 
@@ -70,9 +70,11 @@ Enable/disable existing rules through an interactive interface.
 
 ## Rule Configuration Format
 
+Rules live in `~/.claude/hookify/*.md` and apply in every project. A project can also hold `.claude/hookify.*.local.md` files; the plugin reads both.
+
 ### Simple Rule (Single Pattern)
 
-`.claude/hookify.dangerous-rm.local.md`:
+`~/.claude/hookify/dangerous-rm.md`:
 ```markdown
 ---
 name: block-dangerous-rm
@@ -96,7 +98,7 @@ This command could delete important files. Please:
 
 ### Advanced Rule (Multiple Conditions)
 
-`.claude/hookify.sensitive-files.local.md`:
+`~/.claude/hookify/sensitive-files.md`:
 ```markdown
 ---
 name: warn-sensitive-files
@@ -263,7 +265,7 @@ Use environment variables instead of hardcoded values.
 ### Enable/Disable Rules
 
 **Temporarily disable:**
-Edit the `.local.md` file and set `enabled: false`
+Edit the rule file and set `enabled: false`
 
 **Re-enable:**
 Set `enabled: true`
@@ -275,9 +277,9 @@ Set `enabled: true`
 
 ### Delete Rules
 
-Simply delete the `.local.md` file:
+Simply delete the rule file:
 ```bash
-rm .claude/hookify.my-rule.local.md
+rm ~/.claude/hookify/my-rule.md
 ```
 
 ### View All Rules
@@ -303,7 +305,7 @@ cc --plugin-dir /path/to/hookify
 ## Troubleshooting
 
 **Rule not triggering:**
-1. Check rule file exists in `.claude/` directory (in project root, not plugin directory)
+1. Check rule file exists in `~/.claude/hookify/` and ends with `.md`
 2. Verify `enabled: true` in frontmatter
 3. Test regex pattern separately
 4. Rules should work immediately - no restart needed
