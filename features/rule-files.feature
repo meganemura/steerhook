@@ -21,35 +21,35 @@ Feature: Reading rule files
     Then the command is denied and Claude reads "Quoted pattern matched."
 
   Scenario: A pattern wrapped in a group keeps the quotes inside it
-    Given the user rule file "backtick.md" contains
+    Given the user rule file "double-quoted.md" contains
       """
       ---
-      name: backtick-in-double-quotes
+      name: double-quoted-argument
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*`[^"\n]*")
+      pattern: (?:"[^"\n]*")
       action: warn
       ---
 
-      A backtick inside double quotes is a command substitution.
+      This command carries a double-quoted argument.
       """
-    When Claude runs the bash command "echo \"today is `date`\""
-    Then Claude reads the note "A backtick inside double quotes is a command substitution."
+    When Claude runs the bash command "echo \"today is Monday\""
+    Then Claude reads the note "This command carries a double-quoted argument."
 
-  Scenario: The same pattern stays quiet for a backtick outside double quotes
-    Given the user rule file "backtick.md" contains
+  Scenario: The same pattern stays quiet when the argument is in single quotes
+    Given the user rule file "double-quoted.md" contains
       """
       ---
-      name: backtick-in-double-quotes
+      name: double-quoted-argument
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*`[^"\n]*")
+      pattern: (?:"[^"\n]*")
       action: warn
       ---
 
-      A backtick inside double quotes is a command substitution.
+      This command carries a double-quoted argument.
       """
-    When Claude runs the bash command "echo 'no `dq` here'"
+    When Claude runs the bash command "echo 'today is Monday'"
     Then the hook returns nothing
 
   Scenario: A rule with enabled false never fires

@@ -6,6 +6,12 @@ Feature: The author's own rules
   across lines. Each rule gets one command it must catch and one it must let
   through.
 
+  Two of the rules also pin which view of the command they read. The codex
+  rule and the loop rule read the code, so a command word inside a quoted
+  argument and a loop inside a heredoc body never reach them. The backtick
+  rule reads the expanded text, so it sees what the shell will substitute and
+  nothing else.
+
   Scenario: codex exec is stopped even behind another command
     Given the user rule file "no-direct-codex-exec.md" contains
       """
@@ -38,6 +44,22 @@ Feature: The author's own rules
     When Claude runs the bash command "grep \"codex exec\" notes.md"
     Then the hook returns nothing
 
+  Scenario: codex exec inside a single-quoted prompt passes
+    Given the user rule file "no-direct-codex-exec.md" contains
+      """
+      ---
+      name: no-direct-codex-exec
+      enabled: true
+      event: bash
+      pattern: (^|[\s;&|(])codex\s+exec\b
+      action: block
+      ---
+
+      Do not run codex exec from Bash. Send the task to the codex:codex-rescue subagent.
+      """
+    When Claude runs the bash command "claude -p 'run codex exec --help and report' --model sonnet"
+    Then the hook returns nothing
+
   Scenario: A polling loop with sleep is stopped, also across lines
     Given the user rule file "no-until-sleep-loop.md" contains
       """
@@ -45,7 +67,7 @@ Feature: The author's own rules
       name: no-until-sleep-loop
       enabled: true
       event: bash
-      pattern: \b(until|while)\b[\s\S]*\bsleep\b
+      pattern: \b(until|while)\b[^\n;]*(;|\n)\s*do\b[\s\S]*\bsleep\b
       action: block
       ---
 
@@ -66,13 +88,50 @@ Feature: The author's own rules
       name: no-until-sleep-loop
       enabled: true
       event: bash
-      pattern: \b(until|while)\b[\s\S]*\bsleep\b
+      pattern: \b(until|while)\b[^\n;]*(;|\n)\s*do\b[\s\S]*\bsleep\b
       action: block
       ---
 
       Do not write a loop that waits with sleep. A background task sends a notification when it completes.
       """
     When Claude runs the bash command "while read line; do echo $line; done < list.txt"
+    Then the hook returns nothing
+
+  Scenario: A heredoc that writes a loop into a file passes
+    Given the user rule file "no-until-sleep-loop.md" contains
+      """
+      ---
+      name: no-until-sleep-loop
+      enabled: true
+      event: bash
+      pattern: \b(until|while)\b[^\n;]*(;|\n)\s*do\b[\s\S]*\bsleep\b
+      action: block
+      ---
+
+      Do not write a loop that waits with sleep. A background task sends a notification when it completes.
+      """
+    When Claude runs this bash command
+      """
+      cat > reap.mjs <<'EOF'
+      while (queue.length) { await sleep(1); }
+      EOF
+      """
+    Then the hook returns nothing
+
+  Scenario: Reading the rule's own file passes
+    Given the user rule file "no-until-sleep-loop.md" contains
+      """
+      ---
+      name: no-until-sleep-loop
+      enabled: true
+      event: bash
+      pattern: \b(until|while)\b[^\n;]*(;|\n)\s*do\b[\s\S]*\bsleep\b
+      action: block
+      ---
+
+      Do not write a loop that waits with sleep. A background task sends a notification when it completes.
+      """
+    When Claude runs the bash command "cat ~/.claude/steerhook/no-until-sleep-loop.md"
     Then the hook returns nothing
 
   Scenario: herdr send-text with --enter is stopped
@@ -114,8 +173,11 @@ Feature: The author's own rules
       name: backtick-in-double-quotes
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*(?<!\\)`[^"\n]*")
       action: warn
+      conditions:
+        - field: command_expanded
+          operator: regex_match
+          pattern: (?<!\\)`
       ---
 
       A backtick inside double quotes is a command substitution. Write a long text to a file and pass it on stdin.
@@ -131,8 +193,11 @@ Feature: The author's own rules
       name: backtick-in-double-quotes
       enabled: true
       event: bash
-      pattern: (?:"[^"\n]*(?<!\\)`[^"\n]*")
       action: warn
+      conditions:
+        - field: command_expanded
+          operator: regex_match
+          pattern: (?<!\\)`
       ---
 
       A backtick inside double quotes is a command substitution. Write a long text to a file and pass it on stdin.

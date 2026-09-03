@@ -6,6 +6,17 @@
 
 import { readFileSync } from "node:fs";
 import type { Condition, Rule } from "./config-loader.ts";
+import { commandViews } from "./shell-views.ts";
+
+// The fields a bash rule can match. "command" is the code the shell reads,
+// which is what a rule about a command means; command_raw is the untouched
+// string, for a rule about how the command is written.
+const BASH_VIEWS: Record<string, (command: string) => string> = {
+  command: (c) => commandViews(c).code,
+  command_literal: (c) => commandViews(c).literal,
+  command_expanded: (c) => commandViews(c).expanded,
+  command_raw: (c) => c,
+};
 
 export type HookInput = Record<string, unknown>;
 export type HookOutput = Record<string, unknown>;
@@ -148,6 +159,14 @@ function readTranscript(path: string): string {
 // Extract a field value from the tool input or the hook input. Returns
 // null when the field is not known for this tool or event.
 function extractField(field: string, toolName: string, toolInput: Record<string, unknown>, input: HookInput): string | null {
+  // A bash command is read through the views first, before the direct lookup
+  // below, so that "command" means what the shell reads as code rather than
+  // the string the tool carries. command_raw is the string.
+  const view = toolName === "Bash" ? BASH_VIEWS[field] : undefined;
+  if (view && Object.prototype.hasOwnProperty.call(BASH_VIEWS, field)) {
+    return view(stringOf(toolInput.command));
+  }
+
   // Direct tool_input fields
   if (field in toolInput) return stringOf(toolInput[field]);
 
@@ -163,9 +182,7 @@ function extractField(field: string, toolName: string, toolInput: Record<string,
   }
 
   // Special cases by tool type
-  if (toolName === "Bash") {
-    if (field === "command") return stringOf(toolInput.command);
-  } else if (toolName === "Write" || toolName === "Edit") {
+  if (toolName === "Write" || toolName === "Edit") {
     if (field === "content") return stringOf(toolInput.content || toolInput.new_string);
     if (field === "new_text" || field === "new_string") return stringOf(toolInput.new_string);
     if (field === "old_text" || field === "old_string") return stringOf(toolInput.old_string);
