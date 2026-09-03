@@ -73,7 +73,9 @@ the rules that are loaded. The rule format is hookify's; see
 ## Requirements
 
 Node 22.18 or later. The hooks are TypeScript files that node runs directly,
-so there is nothing to build or install. Verified with Node 26.7.0.
+so there is nothing to build or install. Verified with Node 26.7.0. An older
+node cannot read the files and exits with a syntax error, which Claude Code
+shows as a hook error: that is the node version, not a rule.
 
 Claude Code starts a hook with the PATH of the process that launched it. A
 launch from a GUI can carry a PATH without node. The launcher looks in the
