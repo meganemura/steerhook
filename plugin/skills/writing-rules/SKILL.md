@@ -276,10 +276,8 @@ pattern: rm -rf /tmp  # Only matches exact path
 Better: `rm\s+-rf`
 
 **Escaping issues:**
-- YAML quoted strings: `"pattern"` requires double backslashes `\\s`
-- YAML unquoted: `pattern: \s` works as-is
-- **Recommendation**: Use unquoted patterns in YAML
-- A value whose first and last characters are the same quote loses that pair. Wrap such a pattern in `(?:...)`
+- Write one backslash, quoted or not: `pattern: \s+` and `pattern: "\s+"` read the same. The frontmatter is not YAML; nothing unescapes `\\`.
+- Quotes do one thing: a value whose first and last characters are the same quote loses that one pair. Wrap such a pattern in `(?:...)` to keep them.
 
 ## File Organization
 
