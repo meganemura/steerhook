@@ -1,60 +1,60 @@
 ---
 feature: features/pretooluse.feature
-commit: 306fe8c9e049895f4c1a4d65f81a8d5679c30a7a
-run_id: run-20260903-215826-yk71
-ran_at: 2026-09-03T21:58:29.512+09:00
-accepted_at: 2026-09-03T21:58:43.627+09:00
+commit: b8dc95895385796a1b8ffea9790488e46efd433c
+run_id: run-20260903-233621-tcvj
+ran_at: 2026-09-03T23:36:21.901+09:00
+accepted_at: 2026-09-03T23:36:32.875+09:00
 environment: default
 browser: none
 scenarios:
   - name: A blocking user rule denies the call and Claude reads the message
-    line: 11
-    scenario_record_id: scn-20260903-215829-eikz
+    line: 16
+    scenario_record_id: scn-20260903-233621-paev
   - name: A warning user rule lets the call through and Claude reads a note
-    line: 20
-    scenario_record_id: scn-20260903-215829-syv8
+    line: 25
+    scenario_record_id: scn-20260903-233622-r9xx
   - name: A command that no rule matches passes through untouched
-    line: 30
-    scenario_record_id: scn-20260903-215830-tujn
+    line: 35
+    scenario_record_id: scn-20260903-233622-qnmr
   - name: With no rule directory at all the hook still answers
-    line: 38
-    scenario_record_id: scn-20260903-215830-t8zo
-  - name: The reason names the rule above its message
     line: 43
-    scenario_record_id: scn-20260903-215830-okib
+    scenario_record_id: scn-20260903-233622-wc2f
+  - name: The reason names the rule above its message
+    line: 48
+    scenario_record_id: scn-20260903-233623-x0zq
   - name: Two blocking rules that both match are combined in file-name order
-    line: 55
-    scenario_record_id: scn-20260903-215831-07gp
+    line: 60
+    scenario_record_id: scn-20260903-233623-1v76
   - name: Matching ignores letter case
-    line: 74
-    scenario_record_id: scn-20260903-215831-r182
-  - name: A project rule fires from the project the hook input names
-    line: 82
-    scenario_record_id: scn-20260903-215831-28wy
-  - name: User rules come first, then project rules
-    line: 90
-    scenario_record_id: scn-20260903-215832-sg3x
-  - name: A project rule with the same name replaces the user rule
-    line: 109
-    scenario_record_id: scn-20260903-215832-o1ch
-  - name: A disabled project rule switches the user rule off in that project
-    line: 125
-    scenario_record_id: scn-20260903-215832-xidb
+    line: 79
+    scenario_record_id: scn-20260903-233623-ch0u
+  - name: A project rule is never read
+    line: 87
+    scenario_record_id: scn-20260903-233624-wpy6
+  - name: A user rule fires even when a project rule also matches
+    line: 95
+    scenario_record_id: scn-20260903-233624-5gif
+  - name: A project rule with the same name does not replace the user rule
+    line: 111
+    scenario_record_id: scn-20260903-233624-ownq
+  - name: A disabled project rule does not switch off the user rule
+    line: 124
+    scenario_record_id: scn-20260903-233625-8dw6
   - name: The rules directory can be moved with STEERHOOK_RULES_DIR
-    line: 134
-    scenario_record_id: scn-20260903-215833-eqtc
+    line: 133
+    scenario_record_id: scn-20260903-233625-rzt8
   - name: A bash rule does not look at file edits
-    line: 143
-    scenario_record_id: scn-20260903-215833-gxo1
+    line: 142
+    scenario_record_id: scn-20260903-233625-vgck
   - name: A file rule warns about an edit
-    line: 151
-    scenario_record_id: scn-20260903-215833-3sjk
+    line: 150
+    scenario_record_id: scn-20260903-233626-tyij
   - name: A command that spans lines is matched as one text
-    line: 160
-    scenario_record_id: scn-20260903-215833-pyov
+    line: 159
+    scenario_record_id: scn-20260903-233626-o6wx
 ---
 
-# Rules checked before a tool runs: green at 306fe8c
+# Rules checked before a tool runs: green at b8dc958
 
 ## Condition
 
@@ -66,13 +66,18 @@ scenarios:
 ```gherkin
 Feature: Rules checked before a tool runs
 
-  steerhook reads the user's rules from ~/.claude/steerhook/ and a project's
-  rules from <project>/.claude/steerhook/. Before Claude runs a tool, the
+  steerhook reads only the user's rules, from ~/.claude/steerhook/ (or the
+  directory STEERHOOK_RULES_DIR names). Before Claude runs a tool, the
   PreToolUse hook matches the call against them and answers with JSON.
 
+  A project's own .claude/steerhook/ is never read. Opening a project is not
+  the same as trusting it, and a rule file there could replace or switch off
+  a user's rule by name with no confirmation. The scenarios below write a
+  project rule file and show it has no effect.
+
   In every scenario the hook process runs in a directory that holds no rules.
-  The project is named only by the cwd field of the hook input, the way Claude
-  Code passes it, so a project rule that fires here proves that resolution.
+  The project is named only by the cwd field of the hook input, the way
+  Claude Code passes it.
 
   Scenario: A blocking user rule denies the call and Claude reads the message
     Given the user rule "no-foo" blocks bash commands that match "\bfoo\b"
@@ -145,15 +150,15 @@ Feature: Rules checked before a tool runs
     When Claude runs the bash command "FOO --help"
     Then the command is denied and Claude reads "Use bar instead of foo."
 
-  Scenario: A project rule fires from the project the hook input names
+  Scenario: A project rule is never read
     Given the project rule "project-only" blocks bash commands that match "\bfoo\b"
       """
       Project rule fired.
       """
     When Claude runs the bash command "foo"
-    Then the command is denied and Claude reads "Project rule fired."
+    Then the hook returns nothing
 
-  Scenario: User rules come first, then project rules
+  Scenario: A user rule fires even when a project rule also matches
     Given the user rule "from-user" blocks bash commands that match "foo"
       """
       From the user.
@@ -167,12 +172,9 @@ Feature: Rules checked before a tool runs
       """
       **[from-user]**
       From the user.
-
-      **[from-project]**
-      From the project.
       """
 
-  Scenario: A project rule with the same name replaces the user rule
+  Scenario: A project rule with the same name does not replace the user rule
     Given the user rule "shared" warns bash commands that match "foo"
       """
       user version
@@ -182,20 +184,17 @@ Feature: Rules checked before a tool runs
       project version
       """
     When Claude runs the bash command "foo"
-    Then the denial reason is exactly
-      """
-      **[shared]**
-      project version
-      """
+    Then the command is allowed
+    And Claude reads the note "user version"
 
-  Scenario: A disabled project rule switches the user rule off in that project
+  Scenario: A disabled project rule does not switch off the user rule
     Given the user rule "shared" blocks bash commands that match "foo"
       """
       user version
       """
     And the project rule "shared" is disabled
     When Claude runs the bash command "foo"
-    Then the hook returns nothing
+    Then the command is denied and Claude reads "user version"
 
   Scenario: The rules directory can be moved with STEERHOOK_RULES_DIR
     Given the user rule "no-foo" blocks bash commands that match "foo"
@@ -241,20 +240,20 @@ Feature: Rules checked before a tool runs
 
 Evidence fields are stripped from every record below: evidence. They stay under the state directory with the trace and the screenshots, and are not committed.
 
-### A blocking user rule denies the call and Claude reads the message (line 11)
+### A blocking user rule denies the call and Claude reads the message (line 16)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule "no-foo" blocks bash commands that match "\bfoo\b" | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo --help" | ok | 302 | false | 0 | 0 |
-| the command is denied and Claude reads "Use bar instead of foo." | ok | 0 | false | 0 | 0 |
-| the user sees "Use bar instead of foo." | ok | 0 | false | 0 | 0 |
+| the user rule "no-foo" blocks bash commands that match "\bfoo\b" | ok | 3 | true | 0 | 0 |
+| Claude runs the bash command "foo --help" | ok | 296 | false | 0 | 0 |
+| the command is denied and Claude reads "Use bar instead of foo." | ok | 9 | false | 0 | 0 |
+| the user sees "Use bar instead of foo." | ok | 1 | false | 0 | 0 |
 
 #### the user rule "no-foo" blocks bash commands that match "\bfoo\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-36w3",
+  "step_record_id": "step-20260903-233621-qioa",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -269,10 +268,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-eikz",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.513Z",
-  "finished_at": "2026-09-03T12:58:29.514Z",
+  "scenario_record_id": "scn-20260903-233621-paev",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:21.905Z",
+  "finished_at": "2026-09-03T14:36:21.908Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -284,7 +283,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:29.513Z"
+      "at": "2026-09-03T14:36:21.906Z"
     }
   ]
 }
@@ -294,7 +293,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-gfbz",
+  "step_record_id": "step-20260903-233621-mnsl",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -314,10 +313,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-eikz",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.515Z",
-  "finished_at": "2026-09-03T12:58:29.817Z",
+  "scenario_record_id": "scn-20260903-233621-paev",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:21.912Z",
+  "finished_at": "2026-09-03T14:36:22.208Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -337,7 +336,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-vzq4",
+  "step_record_id": "step-20260903-233622-npm5",
   "step": "denied-with-reason",
   "kind": "run",
   "args": {
@@ -358,10 +357,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-eikz",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.819Z",
-  "finished_at": "2026-09-03T12:58:29.819Z",
+  "scenario_record_id": "scn-20260903-233621-paev",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.210Z",
+  "finished_at": "2026-09-03T14:36:22.219Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -369,7 +368,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215829-gfbz",
+      "step_record_id": "step-20260903-233621-mnsl",
       "step": "run-bash"
     }
   ]
@@ -380,7 +379,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-691h",
+  "step_record_id": "step-20260903-233622-9y1h",
   "step": "user-sees",
   "kind": "run",
   "args": {
@@ -400,10 +399,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-eikz",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.821Z",
-  "finished_at": "2026-09-03T12:58:29.821Z",
+  "scenario_record_id": "scn-20260903-233621-paev",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.221Z",
+  "finished_at": "2026-09-03T14:36:22.222Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -411,28 +410,28 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215829-gfbz",
+      "step_record_id": "step-20260903-233621-mnsl",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### A warning user rule lets the call through and Claude reads a note (line 20)
+### A warning user rule lets the call through and Claude reads a note (line 25)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule "careful-foo" warns bash commands that match "\bfoo\b" | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo --help" | ok | 312 | false | 0 | 0 |
+| the user rule "careful-foo" warns bash commands that match "\bfoo\b" | ok | 0 | true | 0 | 0 |
+| Claude runs the bash command "foo --help" | ok | 288 | false | 0 | 0 |
 | the command is allowed | ok | 1 | false | 0 | 0 |
-| Claude reads the note "foo is slow. Prefer bar." | ok | 1 | false | 0 | 0 |
+| Claude reads the note "foo is slow. Prefer bar." | ok | 0 | false | 0 | 0 |
 | the user sees "foo is slow. Prefer bar." | ok | 0 | false | 0 | 0 |
 
 #### the user rule "careful-foo" warns bash commands that match "\bfoo\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-0ge3",
+  "step_record_id": "step-20260903-233622-rm5d",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -447,10 +446,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-syv8",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.834Z",
-  "finished_at": "2026-09-03T12:58:29.835Z",
+  "scenario_record_id": "scn-20260903-233622-r9xx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.238Z",
+  "finished_at": "2026-09-03T14:36:22.238Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -461,8 +460,8 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "name": "sandbox",
       "scope": "scenario",
       "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:29.834Z"
+      "setup_ms": 0,
+      "at": "2026-09-03T14:36:22.238Z"
     }
   ]
 }
@@ -472,7 +471,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215829-joxt",
+  "step_record_id": "step-20260903-233622-ebwu",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -491,10 +490,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-syv8",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:29.837Z",
-  "finished_at": "2026-09-03T12:58:30.149Z",
+  "scenario_record_id": "scn-20260903-233622-r9xx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.239Z",
+  "finished_at": "2026-09-03T14:36:22.527Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -514,7 +513,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-eku9",
+  "step_record_id": "step-20260903-233622-dtye",
   "step": "allowed",
   "kind": "run",
   "args": {
@@ -532,10 +531,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-syv8",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.150Z",
-  "finished_at": "2026-09-03T12:58:30.151Z",
+  "scenario_record_id": "scn-20260903-233622-r9xx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.528Z",
+  "finished_at": "2026-09-03T14:36:22.529Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -543,7 +542,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215829-joxt",
+      "step_record_id": "step-20260903-233622-ebwu",
       "step": "run-bash"
     }
   ]
@@ -554,7 +553,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-fysn",
+  "step_record_id": "step-20260903-233622-udp8",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
@@ -573,10 +572,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-syv8",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.151Z",
-  "finished_at": "2026-09-03T12:58:30.152Z",
+  "scenario_record_id": "scn-20260903-233622-r9xx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.531Z",
+  "finished_at": "2026-09-03T14:36:22.531Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -584,7 +583,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215829-joxt",
+      "step_record_id": "step-20260903-233622-ebwu",
       "step": "run-bash"
     }
   ]
@@ -595,7 +594,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-wilp",
+  "step_record_id": "step-20260903-233622-g66v",
   "step": "user-sees",
   "kind": "run",
   "args": {
@@ -614,10 +613,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215829-syv8",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.153Z",
-  "finished_at": "2026-09-03T12:58:30.153Z",
+  "scenario_record_id": "scn-20260903-233622-r9xx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.532Z",
+  "finished_at": "2026-09-03T14:36:22.532Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -625,26 +624,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215829-joxt",
+      "step_record_id": "step-20260903-233622-ebwu",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### A command that no rule matches passes through untouched (line 30)
+### A command that no rule matches passes through untouched (line 35)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule "no-foo" blocks bash commands that match "\bfoo\b" | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "ls -la" | ok | 286 | false | 0 | 0 |
-| the hook returns nothing | ok | 1 | false | 0 | 0 |
+| Claude runs the bash command "ls -la" | ok | 307 | false | 0 | 0 |
+| the hook returns nothing | ok | 2 | false | 0 | 0 |
 
 #### the user rule "no-foo" blocks bash commands that match "\bfoo\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-tpb1",
+  "step_record_id": "step-20260903-233622-b2bt",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -659,10 +658,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-tujn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.166Z",
-  "finished_at": "2026-09-03T12:58:30.167Z",
+  "scenario_record_id": "scn-20260903-233622-qnmr",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.545Z",
+  "finished_at": "2026-09-03T14:36:22.546Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -673,8 +672,8 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "name": "sandbox",
       "scope": "scenario",
       "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:30.166Z"
+      "setup_ms": 0,
+      "at": "2026-09-03T14:36:22.545Z"
     }
   ]
 }
@@ -684,7 +683,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-640y",
+  "step_record_id": "step-20260903-233622-d2n5",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -697,10 +696,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-tujn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.168Z",
-  "finished_at": "2026-09-03T12:58:30.454Z",
+  "scenario_record_id": "scn-20260903-233622-qnmr",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.547Z",
+  "finished_at": "2026-09-03T14:36:22.854Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -720,7 +719,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-0vbd",
+  "step_record_id": "step-20260903-233622-ml4l",
   "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
@@ -732,10 +731,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-tujn",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.456Z",
-  "finished_at": "2026-09-03T12:58:30.457Z",
+  "scenario_record_id": "scn-20260903-233622-qnmr",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.855Z",
+  "finished_at": "2026-09-03T14:36:22.857Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -743,18 +742,18 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215830-640y",
+      "step_record_id": "step-20260903-233622-d2n5",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### With no rule directory at all the hook still answers (line 38)
+### With no rule directory at all the hook still answers (line 43)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| Claude runs the bash command "ls" | ok | 318 | false | 0 | 0 |
+| Claude runs the bash command "ls" | ok | 322 | false | 0 | 0 |
 | the hook returns nothing | ok | 1 | false | 0 | 0 |
 | the hook exits with status 0 | ok | 1 | false | 0 | 0 |
 
@@ -762,7 +761,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-1vak",
+  "step_record_id": "step-20260903-233622-kur7",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -775,10 +774,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-t8zo",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.474Z",
-  "finished_at": "2026-09-03T12:58:30.792Z",
+  "scenario_record_id": "scn-20260903-233622-wc2f",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:22.870Z",
+  "finished_at": "2026-09-03T14:36:23.192Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -790,7 +789,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:30.474Z"
+      "at": "2026-09-03T14:36:22.870Z"
     }
   ]
 }
@@ -800,7 +799,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-nk57",
+  "step_record_id": "step-20260903-233623-xo7c",
   "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
@@ -812,10 +811,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-t8zo",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.797Z",
-  "finished_at": "2026-09-03T12:58:30.798Z",
+  "scenario_record_id": "scn-20260903-233622-wc2f",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.193Z",
+  "finished_at": "2026-09-03T14:36:23.194Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -823,7 +822,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215830-1vak",
+      "step_record_id": "step-20260903-233622-kur7",
       "step": "run-bash"
     }
   ]
@@ -834,7 +833,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-aarl",
+  "step_record_id": "step-20260903-233623-m7zs",
   "step": "hook-exits-with-status",
   "kind": "run",
   "args": {
@@ -847,10 +846,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-t8zo",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.804Z",
-  "finished_at": "2026-09-03T12:58:30.805Z",
+  "scenario_record_id": "scn-20260903-233622-wc2f",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.196Z",
+  "finished_at": "2026-09-03T14:36:23.197Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -858,26 +857,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215830-1vak",
+      "step_record_id": "step-20260903-233622-kur7",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### The reason names the rule above its message (line 43)
+### The reason names the rule above its message (line 48)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule "no-foo" blocks bash commands that match "\bfoo\b" | ok | 2 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 323 | false | 0 | 0 |
-| the denial reason is exactly | ok | 2 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 298 | false | 0 | 0 |
+| the denial reason is exactly | ok | 1 | false | 0 | 0 |
 
 #### the user rule "no-foo" blocks bash commands that match "\bfoo\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-dd52",
+  "step_record_id": "step-20260903-233623-9fkj",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -892,10 +891,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-okib",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.824Z",
-  "finished_at": "2026-09-03T12:58:30.826Z",
+  "scenario_record_id": "scn-20260903-233623-x0zq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.209Z",
+  "finished_at": "2026-09-03T14:36:23.211Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -907,7 +906,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:30.825Z"
+      "at": "2026-09-03T14:36:23.210Z"
     }
   ]
 }
@@ -917,7 +916,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215830-o49l",
+  "step_record_id": "step-20260903-233623-9mj4",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -937,10 +936,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-okib",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:30.827Z",
-  "finished_at": "2026-09-03T12:58:31.150Z",
+  "scenario_record_id": "scn-20260903-233623-x0zq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.212Z",
+  "finished_at": "2026-09-03T14:36:23.510Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -960,7 +959,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-gu1u",
+  "step_record_id": "step-20260903-233623-0n3q",
   "step": "reason-is-exactly",
   "kind": "run",
   "args": {
@@ -980,10 +979,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215830-okib",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.153Z",
-  "finished_at": "2026-09-03T12:58:31.155Z",
+  "scenario_record_id": "scn-20260903-233623-x0zq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.512Z",
+  "finished_at": "2026-09-03T14:36:23.513Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -991,27 +990,27 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215830-o49l",
+      "step_record_id": "step-20260903-233623-9mj4",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### Two blocking rules that both match are combined in file-name order (line 55)
+### Two blocking rules that both match are combined in file-name order (line 60)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule "a-first" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
 | the user rule "b-second" blocks bash commands that match "foo" | ok | 0 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 297 | false | 0 | 0 |
-| the denial reason is exactly | ok | 0 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 311 | false | 0 | 0 |
+| the denial reason is exactly | ok | 1 | false | 0 | 0 |
 
 #### the user rule "a-first" blocks bash commands that match "foo"
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-t8xg",
+  "step_record_id": "step-20260903-233623-h8zr",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -1026,10 +1025,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-07gp",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.167Z",
-  "finished_at": "2026-09-03T12:58:31.169Z",
+  "scenario_record_id": "scn-20260903-233623-1v76",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.528Z",
+  "finished_at": "2026-09-03T14:36:23.530Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1041,7 +1040,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:31.167Z"
+      "at": "2026-09-03T14:36:23.529Z"
     }
   ]
 }
@@ -1051,7 +1050,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-2kdn",
+  "step_record_id": "step-20260903-233623-ptcw",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -1066,10 +1065,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-07gp",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.170Z",
-  "finished_at": "2026-09-03T12:58:31.170Z",
+  "scenario_record_id": "scn-20260903-233623-1v76",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.532Z",
+  "finished_at": "2026-09-03T14:36:23.532Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1089,7 +1088,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-gl2o",
+  "step_record_id": "step-20260903-233623-drl0",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1109,10 +1108,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-07gp",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.171Z",
-  "finished_at": "2026-09-03T12:58:31.468Z",
+  "scenario_record_id": "scn-20260903-233623-1v76",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.533Z",
+  "finished_at": "2026-09-03T14:36:23.844Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1132,7 +1131,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-x17y",
+  "step_record_id": "step-20260903-233623-99tp",
   "step": "reason-is-exactly",
   "kind": "run",
   "args": {
@@ -1152,10 +1151,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-07gp",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.469Z",
-  "finished_at": "2026-09-03T12:58:31.469Z",
+  "scenario_record_id": "scn-20260903-233623-1v76",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.845Z",
+  "finished_at": "2026-09-03T14:36:23.846Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1163,26 +1162,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215831-gl2o",
+      "step_record_id": "step-20260903-233623-drl0",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### Matching ignores letter case (line 74)
+### Matching ignores letter case (line 79)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule "no-foo" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "FOO --help" | ok | 288 | false | 0 | 0 |
-| the command is denied and Claude reads "Use bar instead of foo." | ok | 0 | false | 0 | 0 |
+| the user rule "no-foo" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
+| Claude runs the bash command "FOO --help" | ok | 287 | false | 0 | 0 |
+| the command is denied and Claude reads "Use bar instead of foo." | ok | 1 | false | 0 | 0 |
 
 #### the user rule "no-foo" blocks bash commands that match "foo"
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-vtkm",
+  "step_record_id": "step-20260903-233623-hftt",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -1197,10 +1196,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-r182",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.481Z",
-  "finished_at": "2026-09-03T12:58:31.482Z",
+  "scenario_record_id": "scn-20260903-233623-ch0u",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.863Z",
+  "finished_at": "2026-09-03T14:36:23.865Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1212,7 +1211,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:31.481Z"
+      "at": "2026-09-03T14:36:23.863Z"
     }
   ]
 }
@@ -1222,7 +1221,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-3chk",
+  "step_record_id": "step-20260903-233623-3qtp",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1242,10 +1241,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-r182",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.483Z",
-  "finished_at": "2026-09-03T12:58:31.771Z",
+  "scenario_record_id": "scn-20260903-233623-ch0u",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:23.866Z",
+  "finished_at": "2026-09-03T14:36:24.153Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1265,7 +1264,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-vas1",
+  "step_record_id": "step-20260903-233624-ltfv",
   "step": "denied-with-reason",
   "kind": "run",
   "args": {
@@ -1286,10 +1285,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-r182",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.773Z",
-  "finished_at": "2026-09-03T12:58:31.773Z",
+  "scenario_record_id": "scn-20260903-233623-ch0u",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.154Z",
+  "finished_at": "2026-09-03T14:36:24.155Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1297,26 +1296,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215831-3chk",
+      "step_record_id": "step-20260903-233623-3qtp",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### A project rule fires from the project the hook input names (line 82)
+### A project rule is never read (line 87)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the project rule "project-only" blocks bash commands that match "\bfoo\b" | ok | 2 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 290 | false | 0 | 0 |
-| the command is denied and Claude reads "Project rule fired." | ok | 0 | false | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 284 | false | 0 | 0 |
+| the hook returns nothing | ok | 0 | false | 0 | 0 |
 
 #### the project rule "project-only" blocks bash commands that match "\bfoo\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-bgbc",
+  "step_record_id": "step-20260903-233624-k230",
   "step": "project-bash-rule",
   "kind": "run",
   "args": {
@@ -1331,10 +1330,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-28wy",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.785Z",
-  "finished_at": "2026-09-03T12:58:31.787Z",
+  "scenario_record_id": "scn-20260903-233624-wpy6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.167Z",
+  "finished_at": "2026-09-03T14:36:24.169Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1346,7 +1345,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:31.785Z"
+      "at": "2026-09-03T14:36:24.168Z"
     }
   ]
 }
@@ -1356,7 +1355,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215831-q8j2",
+  "step_record_id": "step-20260903-233624-bf1o",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1364,22 +1363,15 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   },
   "result": {
     "exit_code": 0,
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[project-only]**\nProject rule fired."
-      },
-      "systemMessage": "**[project-only]**\nProject rule fired."
-    }
+    "output": {}
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-28wy",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:31.788Z",
-  "finished_at": "2026-09-03T12:58:32.078Z",
+  "scenario_record_id": "scn-20260903-233624-wpy6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.170Z",
+  "finished_at": "2026-09-03T14:36:24.454Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1395,35 +1387,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 }
 ```
 
-#### the command is denied and Claude reads "Project rule fired."
+#### the hook returns nothing
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-xyek",
-  "step": "denied-with-reason",
+  "step_record_id": "step-20260903-233624-7itt",
+  "step": "hook-returns-nothing",
   "kind": "run",
   "args": {
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[project-only]**\nProject rule fired."
-      },
-      "systemMessage": "**[project-only]**\nProject rule fired."
-    },
-    "text": "Project rule fired."
+    "output": {}
   },
   "result": {
-    "decision": "deny",
-    "reason": "**[project-only]**\nProject rule fired."
+    "keys": []
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215831-28wy",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.079Z",
-  "finished_at": "2026-09-03T12:58:32.079Z",
+  "scenario_record_id": "scn-20260903-233624-wpy6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.455Z",
+  "finished_at": "2026-09-03T14:36:24.455Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1431,27 +1414,27 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215831-q8j2",
+      "step_record_id": "step-20260903-233624-bf1o",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### User rules come first, then project rules (line 90)
+### A user rule fires even when a project rule also matches (line 95)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule "from-user" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
-| the project rule "from-project" blocks bash commands that match "foo" | ok | 0 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 343 | false | 0 | 0 |
-| the denial reason is exactly | ok | 0 | false | 0 | 0 |
+| the project rule "from-project" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 305 | false | 0 | 0 |
+| the denial reason is exactly | ok | 1 | false | 0 | 0 |
 
 #### the user rule "from-user" blocks bash commands that match "foo"
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-v8hb",
+  "step_record_id": "step-20260903-233624-b6x2",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -1466,10 +1449,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-sg3x",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.089Z",
-  "finished_at": "2026-09-03T12:58:32.090Z",
+  "scenario_record_id": "scn-20260903-233624-5gif",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.466Z",
+  "finished_at": "2026-09-03T14:36:24.467Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1480,8 +1463,8 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "name": "sandbox",
       "scope": "scenario",
       "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:32.089Z"
+      "setup_ms": 0,
+      "at": "2026-09-03T14:36:24.466Z"
     }
   ]
 }
@@ -1491,7 +1474,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-gwv2",
+  "step_record_id": "step-20260903-233624-s8iz",
   "step": "project-bash-rule",
   "kind": "run",
   "args": {
@@ -1506,10 +1489,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-sg3x",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.091Z",
-  "finished_at": "2026-09-03T12:58:32.091Z",
+  "scenario_record_id": "scn-20260903-233624-5gif",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.468Z",
+  "finished_at": "2026-09-03T14:36:24.469Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1529,7 +1512,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-3b48",
+  "step_record_id": "step-20260903-233624-l38k",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1541,18 +1524,18 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
-        "permissionDecisionReason": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+        "permissionDecisionReason": "**[from-user]**\nFrom the user."
       },
-      "systemMessage": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+      "systemMessage": "**[from-user]**\nFrom the user."
     }
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-sg3x",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.092Z",
-  "finished_at": "2026-09-03T12:58:32.435Z",
+  "scenario_record_id": "scn-20260903-233624-5gif",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.469Z",
+  "finished_at": "2026-09-03T14:36:24.774Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1572,7 +1555,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-bu6x",
+  "step_record_id": "step-20260903-233624-sjwp",
   "step": "reason-is-exactly",
   "kind": "run",
   "args": {
@@ -1580,22 +1563,22 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
-        "permissionDecisionReason": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+        "permissionDecisionReason": "**[from-user]**\nFrom the user."
       },
-      "systemMessage": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+      "systemMessage": "**[from-user]**\nFrom the user."
     },
-    "expected": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+    "expected": "**[from-user]**\nFrom the user."
   },
   "result": {
-    "reason": "**[from-user]**\nFrom the user.\n\n**[from-project]**\nFrom the project."
+    "reason": "**[from-user]**\nFrom the user."
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-sg3x",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.439Z",
-  "finished_at": "2026-09-03T12:58:32.439Z",
+  "scenario_record_id": "scn-20260903-233624-5gif",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.775Z",
+  "finished_at": "2026-09-03T14:36:24.776Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1603,27 +1586,28 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215832-3b48",
+      "step_record_id": "step-20260903-233624-l38k",
       "step": "run-bash"
     }
   ]
 }
 ```
 
-### A project rule with the same name replaces the user rule (line 109)
+### A project rule with the same name does not replace the user rule (line 111)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
-| the user rule "shared" warns bash commands that match "foo" | ok | 2 | true | 0 | 0 |
-| the project rule "shared" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 302 | false | 0 | 0 |
-| the denial reason is exactly | ok | 1 | false | 0 | 0 |
+| the user rule "shared" warns bash commands that match "foo" | ok | 1 | true | 0 | 0 |
+| the project rule "shared" blocks bash commands that match "foo" | ok | 0 | true | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 298 | false | 0 | 0 |
+| the command is allowed | ok | 1 | false | 0 | 0 |
+| Claude reads the note "user version" | ok | 1 | false | 0 | 0 |
 
 #### the user rule "shared" warns bash commands that match "foo"
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-3ugu",
+  "step_record_id": "step-20260903-233624-nofq",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -1638,10 +1622,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-o1ch",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.458Z",
-  "finished_at": "2026-09-03T12:58:32.460Z",
+  "scenario_record_id": "scn-20260903-233624-ownq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.790Z",
+  "finished_at": "2026-09-03T14:36:24.791Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1653,7 +1637,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:32.458Z"
+      "at": "2026-09-03T14:36:24.790Z"
     }
   ]
 }
@@ -1663,7 +1647,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-ifdh",
+  "step_record_id": "step-20260903-233624-4n7o",
   "step": "project-bash-rule",
   "kind": "run",
   "args": {
@@ -1678,10 +1662,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-o1ch",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.466Z",
-  "finished_at": "2026-09-03T12:58:32.468Z",
+  "scenario_record_id": "scn-20260903-233624-ownq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.793Z",
+  "finished_at": "2026-09-03T14:36:24.793Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -1701,7 +1685,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215832-ctke",
+  "step_record_id": "step-20260903-233624-fbdl",
   "step": "run-bash",
   "kind": "run",
   "args": {
@@ -1712,594 +1696,18 @@ Evidence fields are stripped from every record below: evidence. They stay under 
     "output": {
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[shared]**\nproject version"
+        "additionalContext": "**[shared]**\nuser version"
       },
-      "systemMessage": "**[shared]**\nproject version"
+      "systemMessage": "**[shared]**\nuser version"
     }
   },
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215832-o1ch",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.478Z",
-  "finished_at": "2026-09-03T12:58:32.780Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### the denial reason is exactly
-
-```json
-{
-  "step_record_id": "step-20260903-215832-fg6f",
-  "step": "reason-is-exactly",
-  "kind": "run",
-  "args": {
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[shared]**\nproject version"
-      },
-      "systemMessage": "**[shared]**\nproject version"
-    },
-    "expected": "**[shared]**\nproject version"
-  },
-  "result": {
-    "reason": "**[shared]**\nproject version"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215832-o1ch",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.781Z",
-  "finished_at": "2026-09-03T12:58:32.782Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "used": [
-    {
-      "step_record_id": "step-20260903-215832-ctke",
-      "step": "run-bash"
-    }
-  ]
-}
-```
-
-### A disabled project rule switches the user rule off in that project (line 125)
-
-| step | status | ms | mutates | reads | writes |
-| --- | --- | --- | --- | --- | --- |
-| the user rule "shared" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
-| the project rule "shared" is disabled | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 275 | false | 0 | 0 |
-| the hook returns nothing | ok | 1 | false | 0 | 0 |
-
-#### the user rule "shared" blocks bash commands that match "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215832-drq4",
-  "step": "user-bash-rule",
-  "kind": "run",
-  "args": {
-    "name": "shared",
-    "verb": "blocks",
-    "pattern": "foo",
-    "message": "user version"
-  },
-  "result": {
-    "file": "<sandbox>/home/.claude/steerhook/shared.md"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215832-xidb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.794Z",
-  "finished_at": "2026-09-03T12:58:32.795Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:32.794Z"
-    }
-  ]
-}
-```
-
-#### the project rule "shared" is disabled
-
-```json
-{
-  "step_record_id": "step-20260903-215832-18gc",
-  "step": "project-rule-disabled",
-  "kind": "run",
-  "args": {
-    "name": "shared"
-  },
-  "result": {
-    "file": "<sandbox>/project/.claude/steerhook/shared.md"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215832-xidb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.796Z",
-  "finished_at": "2026-09-03T12:58:32.797Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### Claude runs the bash command "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215832-1mpd",
-  "step": "run-bash",
-  "kind": "run",
-  "args": {
-    "command": "foo"
-  },
-  "result": {
-    "exit_code": 0,
-    "output": {}
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215832-xidb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:32.797Z",
-  "finished_at": "2026-09-03T12:58:33.072Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### the hook returns nothing
-
-```json
-{
-  "step_record_id": "step-20260903-215833-4inl",
-  "step": "hook-returns-nothing",
-  "kind": "run",
-  "args": {
-    "output": {}
-  },
-  "result": {
-    "keys": []
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215832-xidb",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.073Z",
-  "finished_at": "2026-09-03T12:58:33.074Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "used": [
-    {
-      "step_record_id": "step-20260903-215832-1mpd",
-      "step": "run-bash"
-    }
-  ]
-}
-```
-
-### The rules directory can be moved with STEERHOOK_RULES_DIR (line 134)
-
-| step | status | ms | mutates | reads | writes |
-| --- | --- | --- | --- | --- | --- |
-| the user rule "no-foo" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
-| the user rules are moved to a directory named by STEERHOOK_RULES_DIR | ok | 1 | true | 0 | 0 |
-| Claude runs the bash command "foo" | ok | 263 | false | 0 | 0 |
-| the command is denied and Claude reads "Use bar instead of foo." | ok | 0 | false | 0 | 0 |
-
-#### the user rule "no-foo" blocks bash commands that match "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215833-2dy0",
-  "step": "user-bash-rule",
-  "kind": "run",
-  "args": {
-    "name": "no-foo",
-    "verb": "blocks",
-    "pattern": "foo",
-    "message": "Use bar instead of foo."
-  },
-  "result": {
-    "file": "<sandbox>/home/.claude/steerhook/no-foo.md"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-eqtc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.086Z",
-  "finished_at": "2026-09-03T12:58:33.088Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:33.086Z"
-    }
-  ]
-}
-```
-
-#### the user rules are moved to a directory named by STEERHOOK_RULES_DIR
-
-```json
-{
-  "step_record_id": "step-20260903-215833-vt4s",
-  "step": "rules-dir-override",
-  "kind": "run",
-  "args": {},
-  "result": {
-    "dir": "<sandbox>/rules-elsewhere"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-eqtc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.089Z",
-  "finished_at": "2026-09-03T12:58:33.090Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### Claude runs the bash command "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215833-6zjc",
-  "step": "run-bash",
-  "kind": "run",
-  "args": {
-    "command": "foo"
-  },
-  "result": {
-    "exit_code": 0,
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[no-foo]**\nUse bar instead of foo."
-      },
-      "systemMessage": "**[no-foo]**\nUse bar instead of foo."
-    }
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-eqtc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.091Z",
-  "finished_at": "2026-09-03T12:58:33.354Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### the command is denied and Claude reads "Use bar instead of foo."
-
-```json
-{
-  "step_record_id": "step-20260903-215833-3pbo",
-  "step": "denied-with-reason",
-  "kind": "run",
-  "args": {
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "**[no-foo]**\nUse bar instead of foo."
-      },
-      "systemMessage": "**[no-foo]**\nUse bar instead of foo."
-    },
-    "text": "Use bar instead of foo."
-  },
-  "result": {
-    "decision": "deny",
-    "reason": "**[no-foo]**\nUse bar instead of foo."
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-eqtc",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.356Z",
-  "finished_at": "2026-09-03T12:58:33.356Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "used": [
-    {
-      "step_record_id": "step-20260903-215833-6zjc",
-      "step": "run-bash"
-    }
-  ]
-}
-```
-
-### A bash rule does not look at file edits (line 143)
-
-| step | status | ms | mutates | reads | writes |
-| --- | --- | --- | --- | --- | --- |
-| the user rule "no-foo" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
-| Claude edits the file "notes.md" to add "foo" | ok | 274 | false | 0 | 0 |
-| the hook returns nothing | ok | 1 | false | 0 | 0 |
-
-#### the user rule "no-foo" blocks bash commands that match "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215833-gfq0",
-  "step": "user-bash-rule",
-  "kind": "run",
-  "args": {
-    "name": "no-foo",
-    "verb": "blocks",
-    "pattern": "foo",
-    "message": "Use bar instead of foo."
-  },
-  "result": {
-    "file": "<sandbox>/home/.claude/steerhook/no-foo.md"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-gxo1",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.370Z",
-  "finished_at": "2026-09-03T12:58:33.372Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:33.371Z"
-    }
-  ]
-}
-```
-
-#### Claude edits the file "notes.md" to add "foo"
-
-```json
-{
-  "step_record_id": "step-20260903-215833-egi8",
-  "step": "edit-file",
-  "kind": "run",
-  "args": {
-    "path": "notes.md",
-    "text": "foo"
-  },
-  "result": {
-    "exit_code": 0,
-    "output": {}
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-gxo1",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.374Z",
-  "finished_at": "2026-09-03T12:58:33.648Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": true
-    }
-  ]
-}
-```
-
-#### the hook returns nothing
-
-```json
-{
-  "step_record_id": "step-20260903-215833-z2la",
-  "step": "hook-returns-nothing",
-  "kind": "run",
-  "args": {
-    "output": {}
-  },
-  "result": {
-    "keys": []
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-gxo1",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.649Z",
-  "finished_at": "2026-09-03T12:58:33.650Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": false,
-  "used": [
-    {
-      "step_record_id": "step-20260903-215833-egi8",
-      "step": "edit-file"
-    }
-  ]
-}
-```
-
-### A file rule warns about an edit (line 151)
-
-| step | status | ms | mutates | reads | writes |
-| --- | --- | --- | --- | --- | --- |
-| the user rule "no-console-log" warns file edits that match "console\.log\(" | ok | 1 | true | 0 | 0 |
-| Claude edits the file "app.ts" to add "console.log(x)" | ok | 263 | false | 0 | 0 |
-| the command is allowed | ok | 1 | false | 0 | 0 |
-| Claude reads the note "Use the logger." | ok | 0 | false | 0 | 0 |
-
-#### the user rule "no-console-log" warns file edits that match "console\.log\("
-
-```json
-{
-  "step_record_id": "step-20260903-215833-92ey",
-  "step": "user-file-rule",
-  "kind": "run",
-  "args": {
-    "name": "no-console-log",
-    "verb": "warns",
-    "pattern": "console\\.log\\(",
-    "message": "Use the logger."
-  },
-  "result": {
-    "file": "<sandbox>/home/.claude/steerhook/no-console-log.md"
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-3sjk",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.661Z",
-  "finished_at": "2026-09-03T12:58:33.662Z",
-  "observed": {
-    "http_reads": 0,
-    "http_writes": 0
-  },
-  "mutates": true,
-  "fixtures": [
-    {
-      "name": "sandbox",
-      "scope": "scenario",
-      "reused": false,
-      "setup_ms": 1,
-      "at": "2026-09-03T12:58:33.661Z"
-    }
-  ]
-}
-```
-
-#### Claude edits the file "app.ts" to add "console.log(x)"
-
-```json
-{
-  "step_record_id": "step-20260903-215833-m4nq",
-  "step": "edit-file",
-  "kind": "run",
-  "args": {
-    "path": "app.ts",
-    "text": "console.log(x)"
-  },
-  "result": {
-    "exit_code": 0,
-    "output": {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "additionalContext": "**[no-console-log]**\nUse the logger."
-      },
-      "systemMessage": "**[no-console-log]**\nUse the logger."
-    }
-  },
-  "status": "ok",
-  "environment": "default",
-  "session": null,
-  "scenario_record_id": "scn-20260903-215833-3sjk",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.663Z",
-  "finished_at": "2026-09-03T12:58:33.926Z",
+  "scenario_record_id": "scn-20260903-233624-ownq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:24.794Z",
+  "finished_at": "2026-09-03T14:36:25.092Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2319,7 +1727,637 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215833-dvh9",
+  "step_record_id": "step-20260903-233625-6vc6",
+  "step": "allowed",
+  "kind": "run",
+  "args": {
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "additionalContext": "**[shared]**\nuser version"
+      },
+      "systemMessage": "**[shared]**\nuser version"
+    }
+  },
+  "result": {
+    "permission_decision": null
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233624-ownq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.093Z",
+  "finished_at": "2026-09-03T14:36:25.094Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "used": [
+    {
+      "step_record_id": "step-20260903-233624-fbdl",
+      "step": "run-bash"
+    }
+  ]
+}
+```
+
+#### Claude reads the note "user version"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-moqm",
+  "step": "claude-reads-note",
+  "kind": "run",
+  "args": {
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "additionalContext": "**[shared]**\nuser version"
+      },
+      "systemMessage": "**[shared]**\nuser version"
+    },
+    "text": "user version"
+  },
+  "result": {
+    "context": "**[shared]**\nuser version"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233624-ownq",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.095Z",
+  "finished_at": "2026-09-03T14:36:25.096Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "used": [
+    {
+      "step_record_id": "step-20260903-233624-fbdl",
+      "step": "run-bash"
+    }
+  ]
+}
+```
+
+### A disabled project rule does not switch off the user rule (line 124)
+
+| step | status | ms | mutates | reads | writes |
+| --- | --- | --- | --- | --- | --- |
+| the user rule "shared" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
+| the project rule "shared" is disabled | ok | 0 | true | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 282 | false | 0 | 0 |
+| the command is denied and Claude reads "user version" | ok | 1 | false | 0 | 0 |
+
+#### the user rule "shared" blocks bash commands that match "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-2oj1",
+  "step": "user-bash-rule",
+  "kind": "run",
+  "args": {
+    "name": "shared",
+    "verb": "blocks",
+    "pattern": "foo",
+    "message": "user version"
+  },
+  "result": {
+    "file": "<sandbox>/home/.claude/steerhook/shared.md"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-8dw6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.110Z",
+  "finished_at": "2026-09-03T14:36:25.112Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": false,
+      "setup_ms": 1,
+      "at": "2026-09-03T14:36:25.111Z"
+    }
+  ]
+}
+```
+
+#### the project rule "shared" is disabled
+
+```json
+{
+  "step_record_id": "step-20260903-233625-4zcs",
+  "step": "project-rule-disabled",
+  "kind": "run",
+  "args": {
+    "name": "shared"
+  },
+  "result": {
+    "file": "<sandbox>/project/.claude/steerhook/shared.md"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-8dw6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.114Z",
+  "finished_at": "2026-09-03T14:36:25.114Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### Claude runs the bash command "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-zjme",
+  "step": "run-bash",
+  "kind": "run",
+  "args": {
+    "command": "foo"
+  },
+  "result": {
+    "exit_code": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "**[shared]**\nuser version"
+      },
+      "systemMessage": "**[shared]**\nuser version"
+    }
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-8dw6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.115Z",
+  "finished_at": "2026-09-03T14:36:25.397Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### the command is denied and Claude reads "user version"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-q1em",
+  "step": "denied-with-reason",
+  "kind": "run",
+  "args": {
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "**[shared]**\nuser version"
+      },
+      "systemMessage": "**[shared]**\nuser version"
+    },
+    "text": "user version"
+  },
+  "result": {
+    "decision": "deny",
+    "reason": "**[shared]**\nuser version"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-8dw6",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.398Z",
+  "finished_at": "2026-09-03T14:36:25.399Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "used": [
+    {
+      "step_record_id": "step-20260903-233625-zjme",
+      "step": "run-bash"
+    }
+  ]
+}
+```
+
+### The rules directory can be moved with STEERHOOK_RULES_DIR (line 133)
+
+| step | status | ms | mutates | reads | writes |
+| --- | --- | --- | --- | --- | --- |
+| the user rule "no-foo" blocks bash commands that match "foo" | ok | 2 | true | 0 | 0 |
+| the user rules are moved to a directory named by STEERHOOK_RULES_DIR | ok | 1 | true | 0 | 0 |
+| Claude runs the bash command "foo" | ok | 332 | false | 0 | 0 |
+| the command is denied and Claude reads "Use bar instead of foo." | ok | 1 | false | 0 | 0 |
+
+#### the user rule "no-foo" blocks bash commands that match "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-9yml",
+  "step": "user-bash-rule",
+  "kind": "run",
+  "args": {
+    "name": "no-foo",
+    "verb": "blocks",
+    "pattern": "foo",
+    "message": "Use bar instead of foo."
+  },
+  "result": {
+    "file": "<sandbox>/home/.claude/steerhook/no-foo.md"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-rzt8",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.416Z",
+  "finished_at": "2026-09-03T14:36:25.418Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": false,
+      "setup_ms": 1,
+      "at": "2026-09-03T14:36:25.417Z"
+    }
+  ]
+}
+```
+
+#### the user rules are moved to a directory named by STEERHOOK_RULES_DIR
+
+```json
+{
+  "step_record_id": "step-20260903-233625-bqkc",
+  "step": "rules-dir-override",
+  "kind": "run",
+  "args": {},
+  "result": {
+    "dir": "<sandbox>/rules-elsewhere"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-rzt8",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.421Z",
+  "finished_at": "2026-09-03T14:36:25.422Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### Claude runs the bash command "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-7qsl",
+  "step": "run-bash",
+  "kind": "run",
+  "args": {
+    "command": "foo"
+  },
+  "result": {
+    "exit_code": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "**[no-foo]**\nUse bar instead of foo."
+      },
+      "systemMessage": "**[no-foo]**\nUse bar instead of foo."
+    }
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-rzt8",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.424Z",
+  "finished_at": "2026-09-03T14:36:25.756Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### the command is denied and Claude reads "Use bar instead of foo."
+
+```json
+{
+  "step_record_id": "step-20260903-233625-vyi0",
+  "step": "denied-with-reason",
+  "kind": "run",
+  "args": {
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "**[no-foo]**\nUse bar instead of foo."
+      },
+      "systemMessage": "**[no-foo]**\nUse bar instead of foo."
+    },
+    "text": "Use bar instead of foo."
+  },
+  "result": {
+    "decision": "deny",
+    "reason": "**[no-foo]**\nUse bar instead of foo."
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-rzt8",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.758Z",
+  "finished_at": "2026-09-03T14:36:25.759Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "used": [
+    {
+      "step_record_id": "step-20260903-233625-7qsl",
+      "step": "run-bash"
+    }
+  ]
+}
+```
+
+### A bash rule does not look at file edits (line 142)
+
+| step | status | ms | mutates | reads | writes |
+| --- | --- | --- | --- | --- | --- |
+| the user rule "no-foo" blocks bash commands that match "foo" | ok | 1 | true | 0 | 0 |
+| Claude edits the file "notes.md" to add "foo" | ok | 316 | false | 0 | 0 |
+| the hook returns nothing | ok | 1 | false | 0 | 0 |
+
+#### the user rule "no-foo" blocks bash commands that match "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-3gzi",
+  "step": "user-bash-rule",
+  "kind": "run",
+  "args": {
+    "name": "no-foo",
+    "verb": "blocks",
+    "pattern": "foo",
+    "message": "Use bar instead of foo."
+  },
+  "result": {
+    "file": "<sandbox>/home/.claude/steerhook/no-foo.md"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-vgck",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.774Z",
+  "finished_at": "2026-09-03T14:36:25.775Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": false,
+      "setup_ms": 1,
+      "at": "2026-09-03T14:36:25.774Z"
+    }
+  ]
+}
+```
+
+#### Claude edits the file "notes.md" to add "foo"
+
+```json
+{
+  "step_record_id": "step-20260903-233625-qrbm",
+  "step": "edit-file",
+  "kind": "run",
+  "args": {
+    "path": "notes.md",
+    "text": "foo"
+  },
+  "result": {
+    "exit_code": 0,
+    "output": {}
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-vgck",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:25.777Z",
+  "finished_at": "2026-09-03T14:36:26.093Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### the hook returns nothing
+
+```json
+{
+  "step_record_id": "step-20260903-233626-bemd",
+  "step": "hook-returns-nothing",
+  "kind": "run",
+  "args": {
+    "output": {}
+  },
+  "result": {
+    "keys": []
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233625-vgck",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.094Z",
+  "finished_at": "2026-09-03T14:36:26.095Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "used": [
+    {
+      "step_record_id": "step-20260903-233625-qrbm",
+      "step": "edit-file"
+    }
+  ]
+}
+```
+
+### A file rule warns about an edit (line 150)
+
+| step | status | ms | mutates | reads | writes |
+| --- | --- | --- | --- | --- | --- |
+| the user rule "no-console-log" warns file edits that match "console\.log\(" | ok | 2 | true | 0 | 0 |
+| Claude edits the file "app.ts" to add "console.log(x)" | ok | 317 | false | 0 | 0 |
+| the command is allowed | ok | 0 | false | 0 | 0 |
+| Claude reads the note "Use the logger." | ok | 0 | false | 0 | 0 |
+
+#### the user rule "no-console-log" warns file edits that match "console\.log\("
+
+```json
+{
+  "step_record_id": "step-20260903-233626-9tad",
+  "step": "user-file-rule",
+  "kind": "run",
+  "args": {
+    "name": "no-console-log",
+    "verb": "warns",
+    "pattern": "console\\.log\\(",
+    "message": "Use the logger."
+  },
+  "result": {
+    "file": "<sandbox>/home/.claude/steerhook/no-console-log.md"
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233626-tyij",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.120Z",
+  "finished_at": "2026-09-03T14:36:26.122Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": true,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": false,
+      "setup_ms": 1,
+      "at": "2026-09-03T14:36:26.120Z"
+    }
+  ]
+}
+```
+
+#### Claude edits the file "app.ts" to add "console.log(x)"
+
+```json
+{
+  "step_record_id": "step-20260903-233626-djmz",
+  "step": "edit-file",
+  "kind": "run",
+  "args": {
+    "path": "app.ts",
+    "text": "console.log(x)"
+  },
+  "result": {
+    "exit_code": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "additionalContext": "**[no-console-log]**\nUse the logger."
+      },
+      "systemMessage": "**[no-console-log]**\nUse the logger."
+    }
+  },
+  "status": "ok",
+  "environment": "default",
+  "session": null,
+  "scenario_record_id": "scn-20260903-233626-tyij",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.131Z",
+  "finished_at": "2026-09-03T14:36:26.448Z",
+  "observed": {
+    "http_reads": 0,
+    "http_writes": 0
+  },
+  "mutates": false,
+  "fixtures": [
+    {
+      "name": "sandbox",
+      "scope": "scenario",
+      "reused": true
+    }
+  ]
+}
+```
+
+#### the command is allowed
+
+```json
+{
+  "step_record_id": "step-20260903-233626-mcwf",
   "step": "allowed",
   "kind": "run",
   "args": {
@@ -2337,10 +2375,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215833-3sjk",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.927Z",
-  "finished_at": "2026-09-03T12:58:33.928Z",
+  "scenario_record_id": "scn-20260903-233626-tyij",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.449Z",
+  "finished_at": "2026-09-03T14:36:26.449Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2348,7 +2386,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215833-m4nq",
+      "step_record_id": "step-20260903-233626-djmz",
       "step": "edit-file"
     }
   ]
@@ -2359,7 +2397,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215833-glwo",
+  "step_record_id": "step-20260903-233626-cm1m",
   "step": "claude-reads-note",
   "kind": "run",
   "args": {
@@ -2378,10 +2416,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215833-3sjk",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.929Z",
-  "finished_at": "2026-09-03T12:58:33.929Z",
+  "scenario_record_id": "scn-20260903-233626-tyij",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.450Z",
+  "finished_at": "2026-09-03T14:36:26.450Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2389,26 +2427,26 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215833-m4nq",
+      "step_record_id": "step-20260903-233626-djmz",
       "step": "edit-file"
     }
   ]
 }
 ```
 
-### A command that spans lines is matched as one text (line 160)
+### A command that spans lines is matched as one text (line 159)
 
 | step | status | ms | mutates | reads | writes |
 | --- | --- | --- | --- | --- | --- |
 | the user rule "no-sleep-loop" blocks bash commands that match "\b(until\|while)\b[\s\S]*\bsleep\b" | ok | 1 | true | 0 | 0 |
-| Claude runs this bash command | ok | 256 | false | 0 | 0 |
+| Claude runs this bash command | ok | 288 | false | 0 | 0 |
 | the command is denied and Claude reads "Do not wait with a loop." | ok | 1 | false | 0 | 0 |
 
 #### the user rule "no-sleep-loop" blocks bash commands that match "\b(until|while)\b[\s\S]*\bsleep\b"
 
 ```json
 {
-  "step_record_id": "step-20260903-215833-htst",
+  "step_record_id": "step-20260903-233626-ysa7",
   "step": "user-bash-rule",
   "kind": "run",
   "args": {
@@ -2423,10 +2461,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215833-pyov",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.939Z",
-  "finished_at": "2026-09-03T12:58:33.940Z",
+  "scenario_record_id": "scn-20260903-233626-o6wx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.463Z",
+  "finished_at": "2026-09-03T14:36:26.464Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2438,7 +2476,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
       "scope": "scenario",
       "reused": false,
       "setup_ms": 1,
-      "at": "2026-09-03T12:58:33.939Z"
+      "at": "2026-09-03T14:36:26.463Z"
     }
   ]
 }
@@ -2448,7 +2486,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215833-y2ey",
+  "step_record_id": "step-20260903-233626-b9l4",
   "step": "run-bash-block",
   "kind": "run",
   "args": {
@@ -2468,10 +2506,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215833-pyov",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:33.941Z",
-  "finished_at": "2026-09-03T12:58:34.197Z",
+  "scenario_record_id": "scn-20260903-233626-o6wx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.465Z",
+  "finished_at": "2026-09-03T14:36:26.753Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2491,7 +2529,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
 
 ```json
 {
-  "step_record_id": "step-20260903-215834-sc78",
+  "step_record_id": "step-20260903-233626-1xmt",
   "step": "denied-with-reason",
   "kind": "run",
   "args": {
@@ -2512,10 +2550,10 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "status": "ok",
   "environment": "default",
   "session": null,
-  "scenario_record_id": "scn-20260903-215833-pyov",
-  "run_id": "run-20260903-215826-yk71",
-  "started_at": "2026-09-03T12:58:34.198Z",
-  "finished_at": "2026-09-03T12:58:34.199Z",
+  "scenario_record_id": "scn-20260903-233626-o6wx",
+  "run_id": "run-20260903-233621-tcvj",
+  "started_at": "2026-09-03T14:36:26.754Z",
+  "finished_at": "2026-09-03T14:36:26.755Z",
   "observed": {
     "http_reads": 0,
     "http_writes": 0
@@ -2523,7 +2561,7 @@ Evidence fields are stripped from every record below: evidence. They stay under 
   "mutates": false,
   "used": [
     {
-      "step_record_id": "step-20260903-215833-y2ey",
+      "step_record_id": "step-20260903-233626-b9l4",
       "step": "run-bash-block"
     }
   ]
