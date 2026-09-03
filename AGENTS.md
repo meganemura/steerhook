@@ -23,13 +23,15 @@ Follow ASD-STE100 Simplified Technical English.
 
 ## Rules
 
-- Keep upstream files diffable: change the minimum, and put a short comment
-  above each change that says why it differs from hookify.
-- Keep the Apache 2.0 LICENSE and NOTICE. Apache 2.0 requires that modified
-  files carry a notice that they changed: keep the line at the top of each
-  modified Python file.
-- Do not add Python dependencies. Upstream runs on the stdlib and Python 3.7+.
-- Unit tests are `python3 -m unittest discover -s plugin/tests`.
+- The plugin code is a TypeScript port of hookify's Python, file for file.
+  Each ported file starts with a "Ported from" line; keep it. Keep the
+  Apache 2.0 LICENSE and NOTICE.
+- No build step and no runtime dependency. node (22.18 or later) runs the
+  `.ts` files directly through `plugin/hooks/run.sh`, so write only syntax
+  node can strip: no `enum`, no `namespace`, `import type` for types,
+  and the `.ts` extension on relative imports.
+- The scenarios under `features/` are the behavior contract. Change a
+  behavior by changing its scenario first.
 - Acceptance scenarios are Gherkin under `features/`, run by nukadoko
   (`npm install`, then `npx nuka check` and `npx nuka run features`). They
   drive the hook scripts through `hooks.json`, the way Claude Code does, so

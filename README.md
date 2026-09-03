@@ -70,16 +70,24 @@ subagent with `--wait`, so the completion arrives as an agent notification.
 the rules that are loaded. The rule format is hookify's; see
 `plugin/README.md`.
 
+## Requirements
+
+Node 22.18 or later. The hooks are TypeScript files that node runs directly,
+so there is nothing to build or install. Verified with Node 26.7.0.
+
+Claude Code starts a hook with the PATH of the process that launched it. A
+launch from a GUI can carry a PATH without node. The launcher looks in the
+usual install places (mise, volta, fnm, nvm, Homebrew). To name the node
+yourself, set `STEERHOOK_NODE` to its path, for example in the `env` section
+of `~/.claude/settings.json`. When no node is found, the hook says so in the
+message shown to the user and lets the call through.
+
 ## Develop
 
-The plugin runs on the Python standard library, so there is nothing to
-install for the plugin itself.
-
 ```sh
-python3 -m unittest discover -s plugin/tests   # unit tests
-npm install                                    # nukadoko, for the scenarios
-npx nuka check                                 # static check of features and steps
-npx nuka run features                          # run every scenario
+npm install              # nukadoko, for the scenarios
+npx nuka check           # static check of features and steps
+npx nuka run features    # run every scenario
 ```
 
 The scenarios under `features/` are the behavior contract. They run the hook

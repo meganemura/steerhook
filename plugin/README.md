@@ -299,8 +299,8 @@ cc --plugin-dir /path/to/steerhook
 
 ## Requirements
 
-- Python 3.7+
-- No external dependencies (uses stdlib only)
+- Node 22.18 or later (node runs the TypeScript hooks directly)
+- No external dependencies, nothing to build
 
 ## Troubleshooting
 
@@ -312,7 +312,7 @@ cc --plugin-dir /path/to/steerhook
 5. Try `/steerhook:list` to see if rule is loaded
 
 **Import errors:**
-- Ensure Python 3 is available: `python3 --version`
+- Ensure node is available: `node --version` (22.18 or later)
 - Check steerhook plugin is installed
 
 **Pattern not matching:**

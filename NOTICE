@@ -5,4 +5,5 @@ Copyright Anthropic, licensed under the Apache License, Version 2.0.
 The plugin/ directory started from upstream commit b58bdbf (2026-05-19).
 Commits after that point are changes made in this fork. Each commit message
 that records an upstream commit carries an "Upstream-Commit:" trailer.
-Modified Python files carry a notice line at the top.
+The plugin code is a TypeScript port of upstream's Python, file for file.
+Each ported file names its source in a "Ported from" line at the top.
