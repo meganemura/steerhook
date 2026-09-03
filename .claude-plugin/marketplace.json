@@ -1,12 +1,12 @@
 {
-  "name": "hookify",
-  "description": "Fork of Anthropic's hookify plugin. Rule messages reach Claude, and rules can live in ~/.claude/hookify/.",
+  "name": "steerhook",
+  "description": "steerhook: rules that block or warn before a tool runs and tell Claude the alternative. Rules live in ~/.claude/steerhook/ and apply in every project.",
   "owner": { "name": "meganemura" },
   "plugins": [
     {
-      "name": "hookify",
+      "name": "steerhook",
       "source": "./plugin",
-      "description": "User-configurable PreToolUse rules from markdown files. Blocks with a reason Claude can read."
+      "description": "User rules for tool calls, with the alternative delivered to Claude."
     }
   ]
 }

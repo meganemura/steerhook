@@ -1,28 +1,28 @@
 ---
-description: Enable or disable hookify rules interactively
+description: Enable or disable steerhook rules interactively
 allowed-tools: ["Glob", "Read", "Edit", "AskUserQuestion", "Skill"]
 ---
 
-# Configure Hookify Rules
+# Configure steerhook Rules
 
-**Load hookify:writing-rules skill first** to understand rule format.
+**Load steerhook:writing-rules skill first** to understand rule format.
 
-Enable or disable existing hookify rules using an interactive interface.
+Enable or disable existing steerhook rules using an interactive interface.
 
 ## Steps
 
 ### 1. Find Existing Rules
 
-Use Glob tool to find all hookify rule files:
+Use Glob tool to find all steerhook rule files:
 ```
 pattern: "*.md"
-path: the home directory + "/.claude/hookify"
+path: the home directory + "/.claude/steerhook"
 ```
-If the project also holds `.claude/hookify/*.md` files, include them.
+If the project also holds `.claude/steerhook/*.md` files, include them.
 
 If no rules found, inform user:
 ```
-No hookify rules configured yet. Use `/hookify` to create your first rule.
+No steerhook rules configured yet. Use `/steerhook` to create your first rule.
 ```
 
 ### 2. Read Current State
@@ -96,7 +96,7 @@ new_string: "enabled: false"
 Show user what was changed:
 
 ```
-## Hookify Rules Updated
+## steerhook Rules Updated
 
 **Enabled:**
 - warn-console-log
@@ -113,14 +113,14 @@ Changes apply immediately - no restart needed
 ## Important Notes
 
 - Changes take effect immediately on next tool use
-- You can also manually edit ~/.claude/hookify/*.md files
+- You can also manually edit ~/.claude/steerhook/*.md files
 - To permanently remove a rule, delete its file
-- Use `/hookify:list` to see all configured rules
+- Use `/steerhook:list` to see all configured rules
 
 ## Edge Cases
 
 **No rules to configure:**
-- Show message about using `/hookify` to create rules first
+- Show message about using `/steerhook` to create rules first
 
 **User selects no rules:**
 - Inform that no changes were made

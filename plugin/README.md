@@ -1,10 +1,10 @@
-# Hookify Plugin
+# steerhook
 
 Easily create custom hooks to prevent unwanted behaviors by analyzing conversation patterns or from explicit instructions.
 
 ## Overview
 
-The hookify plugin makes it simple to create hooks without editing complex `hooks.json` files. Instead, you create lightweight markdown configuration files that define patterns to watch for and messages to show when those patterns match.
+The steerhook plugin makes it simple to create hooks without editing complex `hooks.json` files. Instead, you create lightweight markdown configuration files that define patterns to watch for and messages to show when those patterns match.
 
 **Key features:**
 - 🎯 Analyze conversations to find unwanted behaviors automatically
@@ -18,10 +18,10 @@ The hookify plugin makes it simple to create hooks without editing complex `hook
 ### 1. Create Your First Rule
 
 ```bash
-/hookify Warn me when I use rm -rf commands
+/steerhook Warn me when I use rm -rf commands
 ```
 
-This analyzes your request and creates `~/.claude/hookify/warn-rm.md`.
+This analyzes your request and creates `~/.claude/steerhook/warn-rm.md`.
 
 ### 2. Test It Immediately
 
@@ -36,17 +36,17 @@ You should see the warning message immediately!
 
 ## Usage
 
-### Main Command: /hookify
+### Main Command: /steerhook
 
 **With arguments:**
 ```
-/hookify Don't use console.log in TypeScript files
+/steerhook Don't use console.log in TypeScript files
 ```
 Creates a rule from your explicit instructions.
 
 **Without arguments:**
 ```
-/hookify
+/steerhook
 ```
 Analyzes recent conversation to find behaviors you've corrected or been frustrated by.
 
@@ -54,27 +54,27 @@ Analyzes recent conversation to find behaviors you've corrected or been frustrat
 
 **List all rules:**
 ```
-/hookify:list
+/steerhook:list
 ```
 
 **Configure rules interactively:**
 ```
-/hookify:configure
+/steerhook:configure
 ```
 Enable/disable existing rules through an interactive interface.
 
 **Get help:**
 ```
-/hookify:help
+/steerhook:help
 ```
 
 ## Rule Configuration Format
 
-Rules live in `~/.claude/hookify/*.md` and apply in every project. A project can also hold `.claude/hookify/*.md` files; the plugin reads both.
+Rules live in `~/.claude/steerhook/*.md` and apply in every project. A project can also hold `.claude/steerhook/*.md` files; the plugin reads both.
 
 ### Simple Rule (Single Pattern)
 
-`~/.claude/hookify/dangerous-rm.md`:
+`~/.claude/steerhook/dangerous-rm.md`:
 ```markdown
 ---
 name: block-dangerous-rm
@@ -98,7 +98,7 @@ This command could delete important files. Please:
 
 ### Advanced Rule (Multiple Conditions)
 
-`~/.claude/hookify/sensitive-files.md`:
+`~/.claude/steerhook/sensitive-files.md`:
 ```markdown
 ---
 name: warn-sensitive-files
@@ -272,20 +272,20 @@ Set `enabled: true`
 
 **Or use interactive tool:**
 ```
-/hookify:configure
+/steerhook:configure
 ```
 
 ### Delete Rules
 
 Simply delete the rule file:
 ```bash
-rm ~/.claude/hookify/my-rule.md
+rm ~/.claude/steerhook/my-rule.md
 ```
 
 ### View All Rules
 
 ```
-/hookify:list
+/steerhook:list
 ```
 
 ## Installation
@@ -294,7 +294,7 @@ This plugin is part of the Claude Code Marketplace. It should be auto-discovered
 
 **Manual testing:**
 ```bash
-cc --plugin-dir /path/to/hookify
+cc --plugin-dir /path/to/steerhook
 ```
 
 ## Requirements
@@ -305,15 +305,15 @@ cc --plugin-dir /path/to/hookify
 ## Troubleshooting
 
 **Rule not triggering:**
-1. Check rule file exists in `~/.claude/hookify/` and ends with `.md`
+1. Check rule file exists in `~/.claude/steerhook/` and ends with `.md`
 2. Verify `enabled: true` in frontmatter
 3. Test regex pattern separately
 4. Rules should work immediately - no restart needed
-5. Try `/hookify:list` to see if rule is loaded
+5. Try `/steerhook:list` to see if rule is loaded
 
 **Import errors:**
 - Ensure Python 3 is available: `python3 --version`
-- Check hookify plugin is installed
+- Check steerhook plugin is installed
 
 **Pattern not matching:**
 - Test regex: `python3 -c "import re; print(re.search(r'pattern', 'text'))"`
@@ -339,4 +339,4 @@ Found a useful rule pattern? Consider sharing example files via PR!
 
 ## License
 
-MIT License
+Apache License 2.0. See LICENSE.

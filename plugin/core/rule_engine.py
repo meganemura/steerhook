@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# Modified in the meganemura/hookify fork: rule messages reach Claude.
-"""Rule evaluation engine for hookify plugin."""
+# Modified in steerhook (meganemura/steerhook), a fork of hookify: rule messages reach Claude.
+"""Rule evaluation engine for steerhook plugin."""
 
 import re
 import sys

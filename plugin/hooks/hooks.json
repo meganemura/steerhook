@@ -1,5 +1,5 @@
 {
-  "description": "Hookify plugin - User-configurable hooks from .local.md files",
+  "description": "steerhook - user rules that block or warn before a tool runs, with the alternative for Claude",
   "hooks": {
     "PreToolUse": [
       {

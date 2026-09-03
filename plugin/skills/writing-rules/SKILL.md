@@ -1,14 +1,14 @@
 ---
-name: writing-hookify-rules
-description: This skill should be used when the user asks to "create a hookify rule", "write a hook rule", "configure hookify", "add a hookify rule", or needs guidance on hookify rule syntax and patterns.
+name: writing-steerhook-rules
+description: This skill should be used when the user asks to "create a steerhook rule", "write a hook rule", "configure steerhook", "add a steerhook rule", or needs guidance on steerhook rule syntax and patterns.
 version: 0.1.0
 ---
 
-# Writing Hookify Rules
+# Writing steerhook Rules
 
 ## Overview
 
-Hookify rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `~/.claude/hookify/{rule-name}.md` files and apply in every project.
+steerhook rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `~/.claude/steerhook/{rule-name}.md` files and apply in every project.
 
 ## Rule File Format
 
@@ -283,9 +283,9 @@ Better: `rm\s+-rf`
 
 ## File Organization
 
-**Location:** `~/.claude/hookify/`, the user's rule directory. A rule there applies in every project.
-**Naming:** `~/.claude/hookify/{descriptive-name}.md`
-**Project rules:** A project can also hold `.claude/hookify/{name}.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule. A project rule with `enabled: false` switches the user rule off in that project.
+**Location:** `~/.claude/steerhook/`, the user's rule directory. A rule there applies in every project.
+**Naming:** `~/.claude/steerhook/{descriptive-name}.md`
+**Project rules:** A project can also hold `.claude/steerhook/{name}.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule. A project rule with `enabled: false` switches the user rule off in that project.
 
 **Good names:**
 - `dangerous-rm.md`
@@ -305,7 +305,7 @@ Better: `rm\s+-rf`
 2. Determine which tool is involved (Bash, Edit, etc.)
 3. Choose event type (bash, file, stop, etc.)
 4. Write regex pattern
-5. Create `~/.claude/hookify/{name}.md`
+5. Create `~/.claude/steerhook/{name}.md`
 6. Test immediately - rules are read dynamically on next tool use
 
 ### Refining a Rule
@@ -322,9 +322,9 @@ Better: `rm\s+-rf`
 ## Examples
 
 See `${CLAUDE_PLUGIN_ROOT}/examples/` for complete examples:
-- `dangerous-rm.local.md` - Block dangerous rm commands
-- `console-log-warning.local.md` - Warn about console.log
-- `sensitive-files-warning.local.md` - Warn about editing .env files
+- `dangerous-rm.md` - Block dangerous rm commands
+- `console-log-warning.md` - Warn about console.log
+- `sensitive-files-warning.md` - Warn about editing .env files
 
 ## Quick Reference
 

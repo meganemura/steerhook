@@ -28,12 +28,12 @@ class LoadRulesTest(unittest.TestCase):
         self.project = os.path.join(self.tmp.name, 'project')
         os.makedirs(self.user_dir)
         os.makedirs(self.project)
-        patcher = mock.patch.dict(os.environ, {'HOOKIFY_RULES_DIR': self.user_dir})
+        patcher = mock.patch.dict(os.environ, {'STEERHOOK_RULES_DIR': self.user_dir})
         patcher.start()
         self.addCleanup(patcher.stop)
 
     def project_rule(self, name, **kwargs):
-        write_rule(os.path.join(self.project, '.claude', 'hookify', f'{name}.md'), name, **kwargs)
+        write_rule(os.path.join(self.project, '.claude', 'steerhook', f'{name}.md'), name, **kwargs)
 
     def user_rule(self, name, **kwargs):
         write_rule(os.path.join(self.user_dir, f'{name}.md'), name, **kwargs)
@@ -75,7 +75,7 @@ class LoadRulesTest(unittest.TestCase):
         self.assertEqual(without_cwd, [])
 
     def test_missing_user_directory_is_not_an_error(self):
-        with mock.patch.dict(os.environ, {'HOOKIFY_RULES_DIR': os.path.join(self.tmp.name, 'absent')}):
+        with mock.patch.dict(os.environ, {'STEERHOOK_RULES_DIR': os.path.join(self.tmp.name, 'absent')}):
             self.project_rule('only-project')
 
             names = [r.name for r in load_rules(event='bash', cwd=self.project)]

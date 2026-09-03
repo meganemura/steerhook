@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-# Modified in the meganemura/hookify fork: project rules resolve from the hook input cwd.
-"""Stop hook executor for hookify plugin.
+# Modified in steerhook (meganemura/steerhook), a fork of hookify: project rules resolve from the hook input cwd.
+"""Stop hook executor for steerhook plugin.
 
 This script is called by Claude Code when agent wants to stop.
-It reads .claude/hookify.*.local.md files and evaluates stop rules.
+It reads the rule files in ~/.claude/steerhook/ and in the project's
+.claude/steerhook/, and evaluates the stop rules.
 """
 
 import os
@@ -19,7 +20,7 @@ try:
     from core.config_loader import load_rules
     from core.rule_engine import RuleEngine
 except ImportError as e:
-    error_msg = {"systemMessage": f"Hookify import error: {e}"}
+    error_msg = {"systemMessage": f"steerhook import error: {e}"}
     print(json.dumps(error_msg), file=sys.stdout)
     sys.exit(0)
 
@@ -43,7 +44,7 @@ def main():
     except Exception as e:
         # On any error, allow the operation
         error_output = {
-            "systemMessage": f"Hookify error: {str(e)}"
+            "systemMessage": f"steerhook error: {str(e)}"
         }
         print(json.dumps(error_output), file=sys.stdout)
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Modified in the meganemura/hookify fork: rules also load from ~/.claude/hookify/.
-"""Configuration loader for hookify plugin.
+# Modified in steerhook (meganemura/steerhook), a fork of hookify: rules also load from ~/.claude/steerhook/.
+"""Configuration loader for steerhook plugin.
 
-Loads and parses the rule files in ~/.claude/hookify/ and in the
-project's .claude/hookify/.
+Loads and parses the rule files in ~/.claude/steerhook/ and in the
+project's .claude/steerhook/.
 """
 
 import os
@@ -33,7 +33,7 @@ class Condition:
 
 @dataclass
 class Rule:
-    """A hookify rule."""
+    """A steerhook rule."""
     name: str
     enabled: bool
     event: str  # "bash", "file", "stop", "all", etc.
@@ -208,7 +208,7 @@ def extract_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
 
 
 def load_rules(event: Optional[str] = None, cwd: Optional[str] = None) -> List[Rule]:
-    """Load all hookify rules from the user and project rule directories.
+    """Load all steerhook rules from the user and project rule directories.
 
     Args:
         event: Optional event filter ("bash", "file", "stop", etc.)
@@ -219,17 +219,17 @@ def load_rules(event: Optional[str] = None, cwd: Optional[str] = None) -> List[R
         List of enabled Rule objects matching the event.
     """
     # Fork: rules about the user's own tools apply in every project, so the
-    # user directory (~/.claude/hookify/*.md, or HOOKIFY_RULES_DIR) is read
+    # user directory (~/.claude/steerhook/*.md, or STEERHOOK_RULES_DIR) is read
     # too. A project rule with the same name replaces the user rule.
-    user_dir = os.environ.get('HOOKIFY_RULES_DIR') or os.path.join(
-        os.path.expanduser('~'), '.claude', 'hookify')
+    user_dir = os.environ.get('STEERHOOK_RULES_DIR') or os.path.join(
+        os.path.expanduser('~'), '.claude', 'steerhook')
     user_files = sorted(glob.glob(os.path.join(user_dir, '*.md')))
     user_rules = _load_rule_files(user_files, event)
 
     # Fork: the project directory has the same shape as the user directory.
     # A plugin hook can run in the plugin's own directory, so the project is
     # taken from the hook input's cwd, not the process cwd.
-    pattern = os.path.join(cwd or '.', '.claude', 'hookify', '*.md')
+    pattern = os.path.join(cwd or '.', '.claude', 'steerhook', '*.md')
     files = sorted(glob.glob(pattern))
     project_rules = _load_rule_files(files, event)
 

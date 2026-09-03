@@ -4,15 +4,15 @@ argument-hint: Optional specific behavior to address
 allowed-tools: ["Read", "Write", "AskUserQuestion", "Task", "Grep", "TodoWrite", "Skill"]
 ---
 
-# Hookify - Create Hooks from Unwanted Behaviors
+# steerhook - Create Hooks from Unwanted Behaviors
 
-**FIRST: Load the hookify:writing-rules skill** using the Skill tool to understand rule file format and syntax.
+**FIRST: Load the steerhook:writing-rules skill** using the Skill tool to understand rule file format and syntax.
 
 Create hook rules to prevent problematic behaviors by analyzing the conversation or from explicit user instructions.
 
 ## Your Task
 
-You will help the user create hookify rules to prevent unwanted behaviors. Follow these steps:
+You will help the user create steerhook rules to prevent unwanted behaviors. Follow these steps:
 
 ### Step 1: Gather Behavior Information
 
@@ -61,7 +61,7 @@ Focus on the most recent issues (last 20-30 messages). Don't go back further unl
 
 After gathering behaviors (from arguments or agent), present to user using AskUserQuestion:
 
-**Question 1: Which behaviors to hookify?**
+**Question 1: Which behaviors to steerhook?**
 - Header: "Create Rules"
 - multiSelect: true
 - Options: List each detected behavior (max 4)
@@ -81,7 +81,7 @@ After gathering behaviors (from arguments or agent), present to user using AskUs
 
 ### Step 3: Generate Rule Files
 
-For each confirmed behavior, create a `~/.claude/hookify/{rule-name}.md` file:
+For each confirmed behavior, create a `~/.claude/steerhook/{rule-name}.md` file:
 
 **Rule naming convention:**
 - Use kebab-case
@@ -125,18 +125,18 @@ conditions:
 
 ### Step 4: Create Files and Confirm
 
-**IMPORTANT**: Rule files go in the user's rule directory `~/.claude/hookify/`, NOT in the project and NOT in the plugin directory. A rule there applies in every project.
+**IMPORTANT**: Rule files go in the user's rule directory `~/.claude/steerhook/`, NOT in the project and NOT in the plugin directory. A rule there applies in every project.
 
-1. Use the Write tool to create each `~/.claude/hookify/{name}.md` file
+1. Use the Write tool to create each `~/.claude/steerhook/{name}.md` file
    - Use the absolute path: expand `~` to the home directory
    - The Write tool creates the directory when it does not exist
 
 2. Show user what was created:
    ```
-   Created 3 hookify rules:
-   - ~/.claude/hookify/dangerous-rm.md
-   - ~/.claude/hookify/console-log.md
-   - ~/.claude/hookify/sensitive-files.md
+   Created 3 steerhook rules:
+   - ~/.claude/steerhook/dangerous-rm.md
+   - ~/.claude/steerhook/console-log.md
+   - ~/.claude/steerhook/sensitive-files.md
 
    These rules will trigger on:
    - dangerous-rm: Bash commands matching "rm -rf"
@@ -148,7 +148,7 @@ conditions:
 
 4. Inform user: **"Rules are active immediately - no restart needed!"**
 
-   The hookify hooks are already loaded and will read your new rules on the next tool use.
+   The steerhook hooks are already loaded and will read your new rules on the next tool use.
 
 ## Event Types Reference
 
@@ -173,13 +173,13 @@ conditions:
 
 ## Example Workflow
 
-**User says**: "/hookify Don't use rm -rf without asking me first"
+**User says**: "/steerhook Don't use rm -rf without asking me first"
 
 **Your response**:
 1. Analyze: User wants to prevent rm -rf commands
 2. Ask: "Should I block this command or just warn you?"
 3. User selects: "Just warn"
-4. Create `~/.claude/hookify/dangerous-rm.md`:
+4. Create `~/.claude/steerhook/dangerous-rm.md`:
    ```markdown
    ---
    name: warn-dangerous-rm
@@ -193,12 +193,12 @@ conditions:
    You requested to be warned before using rm -rf.
    Please verify the path is correct.
    ```
-5. Confirm: "Created hookify rule. It's active immediately - try triggering it!"
+5. Confirm: "Created steerhook rule. It's active immediately - try triggering it!"
 
 ## Important Notes
 
 - **No restart needed**: Rules take effect immediately on the next tool use
-- **File location**: Create files in `~/.claude/hookify/`, NOT in the project and NOT in the plugin directory
+- **File location**: Create files in `~/.claude/steerhook/`, NOT in the project and NOT in the plugin directory
 - **Regex syntax**: Use Python regex syntax (raw strings, no need to escape in YAML)
 - **Action types**: Rules can `warn` (default) or `block` operations
 - **Testing**: Test rules immediately after creating them
@@ -206,11 +206,11 @@ conditions:
 ## Troubleshooting
 
 **If rule file creation fails:**
-1. Use the absolute path: `{home}/.claude/hookify/{name}.md`
+1. Use the absolute path: `{home}/.claude/steerhook/{name}.md`
 2. Verify file was created with Glob or ls
 
 **If rule doesn't trigger after creation:**
-1. Verify file is in `~/.claude/hookify/` and ends with `.md`
+1. Verify file is in `~/.claude/steerhook/` and ends with `.md`
 2. Check file with Read tool to ensure pattern is correct
 3. Test pattern with: `python3 -c "import re; print(re.search(r'pattern', 'test text'))"`
 4. Verify `enabled: true` in frontmatter

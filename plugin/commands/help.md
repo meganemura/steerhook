@@ -1,30 +1,30 @@
 ---
-description: Get help with the hookify plugin
+description: Get help with the steerhook plugin
 allowed-tools: ["Read"]
 ---
 
-# Hookify Plugin Help
+# steerhook Plugin Help
 
-Explain how the hookify plugin works and how to use it.
+Explain how the steerhook plugin works and how to use it.
 
 ## Overview
 
-The hookify plugin makes it easy to create custom hooks that prevent unwanted behaviors. Instead of editing `hooks.json` files, users create simple markdown configuration files that define patterns to watch for.
+The steerhook plugin makes it easy to create custom hooks that prevent unwanted behaviors. Instead of editing `hooks.json` files, users create simple markdown configuration files that define patterns to watch for.
 
 ## How It Works
 
 ### 1. Hook System
 
-Hookify installs generic hooks that run on these events:
+steerhook installs generic hooks that run on these events:
 - **PreToolUse**: Before any tool executes (Bash, Edit, Write, etc.)
 - **Stop**: When Claude wants to stop working
 - **UserPromptSubmit**: When user submits a prompt
 
-These hooks read rule files from `~/.claude/hookify/*.md` (and from a project's `.claude/hookify/*.md`, if present) and check if any rules match the current operation.
+These hooks read rule files from `~/.claude/steerhook/*.md` (and from a project's `.claude/steerhook/*.md`, if present) and check if any rules match the current operation.
 
 ### 2. Configuration Files
 
-Users create rules in `~/.claude/hookify/{rule-name}.md` files:
+Users create rules in `~/.claude/steerhook/{rule-name}.md` files:
 
 ```markdown
 ---
@@ -49,29 +49,29 @@ The message body is what Claude sees when the rule triggers.
 
 ### 3. Creating Rules
 
-**Option A: Use /hookify command**
+**Option A: Use /steerhook command**
 ```
-/hookify Don't use console.log in production files
+/steerhook Don't use console.log in production files
 ```
 
 This analyzes your request and creates the appropriate rule file.
 
 **Option B: Create manually**
-Create `~/.claude/hookify/my-rule.md` with the format above.
+Create `~/.claude/steerhook/my-rule.md` with the format above.
 
 **Option C: Analyze conversation**
 ```
-/hookify
+/steerhook
 ```
 
-Without arguments, hookify analyzes recent conversation to find behaviors you want to prevent.
+Without arguments, steerhook analyzes recent conversation to find behaviors you want to prevent.
 
 ## Available Commands
 
-- **`/hookify`** - Create hooks from conversation analysis or explicit instructions
-- **`/hookify:help`** - Show this help (what you're reading now)
-- **`/hookify:list`** - List all configured hooks
-- **`/hookify:configure`** - Enable/disable existing hooks interactively
+- **`/steerhook`** - Create hooks from conversation analysis or explicit instructions
+- **`/steerhook:help`** - Show this help (what you're reading now)
+- **`/steerhook:list`** - List all configured hooks
+- **`/steerhook:configure`** - Enable/disable existing hooks interactively
 
 ## Example Use Cases
 
@@ -130,18 +130,18 @@ Use Python regex syntax:
 
 ## Important Notes
 
-**No Restart Needed**: Hookify rules take effect immediately on the next tool use. The hookify hooks are already loaded and read your rules dynamically.
+**No Restart Needed**: steerhook rules take effect immediately on the next tool use. The steerhook hooks are already loaded and read your rules dynamically.
 
 **Block or Warn**: Rules can either `block` operations (prevent execution) or `warn` (show message but allow). Set `action: block` or `action: warn` in the rule's frontmatter.
 
-**Rule Files**: Keep rules in `~/.claude/hookify/`. A rule there applies in every project.
+**Rule Files**: Keep rules in `~/.claude/steerhook/`. A rule there applies in every project.
 
 **Disable Rules**: Set `enabled: false` in frontmatter or delete the file.
 
 ## Troubleshooting
 
 **Hook not triggering:**
-- Check rule file is in `~/.claude/hookify/` and ends with `.md`
+- Check rule file is in `~/.claude/steerhook/` and ends with `.md`
 - Verify `enabled: true` in frontmatter
 - Confirm pattern is valid regex
 - Test pattern: `python3 -c "import re; print(re.search('your_pattern', 'test_text'))"`
@@ -149,7 +149,7 @@ Use Python regex syntax:
 
 **Import errors:**
 - Check Python 3 is available: `python3 --version`
-- Verify hookify plugin is installed correctly
+- Verify steerhook plugin is installed correctly
 
 **Pattern not matching:**
 - Test regex separately
@@ -160,14 +160,14 @@ Use Python regex syntax:
 
 1. Create your first rule:
    ```
-   /hookify Warn me when I try to use rm -rf
+   /steerhook Warn me when I try to use rm -rf
    ```
 
 2. Try to trigger it:
    - Ask Claude to run `rm -rf /tmp/test`
    - You should see the warning
 
-4. Refine the rule by editing `~/.claude/hookify/warn-rm.md`
+4. Refine the rule by editing `~/.claude/steerhook/warn-rm.md`
 
 5. Create more rules as you encounter unwanted behaviors
 

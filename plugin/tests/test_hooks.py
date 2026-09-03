@@ -30,7 +30,7 @@ class PreToolUseHookTest(unittest.TestCase):
     def run_hook(self, command):
         # The process runs in a directory that holds no rules, as a plugin
         # hook does. Only the cwd field in the input names the project.
-        env = dict(os.environ, CLAUDE_PLUGIN_ROOT=PLUGIN_ROOT, HOOKIFY_RULES_DIR=self.user_dir)
+        env = dict(os.environ, CLAUDE_PLUGIN_ROOT=PLUGIN_ROOT, STEERHOOK_RULES_DIR=self.user_dir)
         input_data = {
             'hook_event_name': 'PreToolUse',
             'tool_name': 'Bash',
@@ -44,7 +44,7 @@ class PreToolUseHookTest(unittest.TestCase):
         return json.loads(proc.stdout)
 
     def test_project_rule_blocks_with_reason(self):
-        write_rule(os.path.join(self.project, '.claude', 'hookify', 'no-foo.md'),
+        write_rule(os.path.join(self.project, '.claude', 'steerhook', 'no-foo.md'),
                    'no-foo', r'\bfoo\b', 'block', 'Use bar instead of foo.')
 
         result = self.run_hook('foo --help')

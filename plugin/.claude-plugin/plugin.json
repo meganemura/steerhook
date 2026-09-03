@@ -1,8 +1,7 @@
 {
-  "name": "hookify",
-  "description": "Easily create hooks to prevent unwanted behaviors by analyzing conversation patterns",
+  "name": "steerhook",
+  "description": "Rules that block or warn before a tool runs and tell Claude the alternative. Rules live in ~/.claude/steerhook/ and apply in every project.",
   "author": {
-    "name": "Anthropic",
-    "email": "support@anthropic.com"
+    "name": "meganemura"
   }
 }
