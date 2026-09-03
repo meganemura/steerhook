@@ -113,7 +113,7 @@ Did you run tests before finishing? Make sure `npm test` or equivalent was execu
 
 ## Pattern Syntax
 
-Use Python regex syntax:
+Use JavaScript regular-expression syntax. Matching ignores letter case:
 - `\s` - whitespace
 - `\.` - literal dot
 - `|` - OR
@@ -144,11 +144,11 @@ Use Python regex syntax:
 - Check rule file is in `~/.claude/steerhook/` and ends with `.md`
 - Verify `enabled: true` in frontmatter
 - Confirm pattern is valid regex
-- Test pattern: `python3 -c "import re; print(re.search('your_pattern', 'test_text'))"`
+- Test pattern: `node -e "console.log(/your_pattern/i.test('test_text'))"`
 - Rules take effect immediately - no restart needed
 
 **Import errors:**
-- Check Python 3 is available: `python3 --version`
+- Check node is available: `node --version` (22.18 or later)
 - Verify steerhook plugin is installed correctly
 
 **Pattern not matching:**

@@ -131,7 +131,7 @@ Ensure credentials are not hardcoded and file is in .gitignore.
 
 ## Pattern Syntax
 
-Use Python regex syntax:
+Use JavaScript regular-expression syntax. Matching ignores letter case:
 
 | Pattern | Matches | Example |
 |---------|---------|---------|
@@ -316,7 +316,7 @@ cc --plugin-dir /path/to/steerhook
 - Check steerhook plugin is installed
 
 **Pattern not matching:**
-- Test regex: `python3 -c "import re; print(re.search(r'pattern', 'text'))"`
+- Test regex: `node -e "console.log(/pattern/i.test('text'))"`
 - Use unquoted patterns in YAML to avoid escaping issues
 - Start simple, then add complexity
 

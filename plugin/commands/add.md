@@ -199,7 +199,7 @@ conditions:
 
 - **No restart needed**: Rules take effect immediately on the next tool use
 - **File location**: Create files in `~/.claude/steerhook/`, NOT in the project and NOT in the plugin directory
-- **Regex syntax**: Use Python regex syntax (raw strings, no need to escape in YAML)
+- **Regex syntax**: Use JavaScript regular-expression syntax (no need to escape in the frontmatter); matching ignores letter case
 - **Action types**: Rules can `warn` (default) or `block` operations
 - **Testing**: Test rules immediately after creating them
 
@@ -212,7 +212,7 @@ conditions:
 **If rule doesn't trigger after creation:**
 1. Verify file is in `~/.claude/steerhook/` and ends with `.md`
 2. Check file with Read tool to ensure pattern is correct
-3. Test pattern with: `python3 -c "import re; print(re.search(r'pattern', 'test text'))"`
+3. Test pattern with: `node -e "console.log(/pattern/i.test('test text'))"`
 4. Verify `enabled: true` in frontmatter
 5. Remember: Rules work immediately, no restart needed
 

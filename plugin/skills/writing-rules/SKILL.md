@@ -53,7 +53,7 @@ Can include markdown formatting, warnings, suggestions, etc.
 **pattern** (simple format): Regex pattern to match
 - Used for simple single-condition rules
 - Matches against command (bash) or new_text (file)
-- Python regex syntax
+- JavaScript regular-expression syntax; matching ignores letter case
 
 **Example:**
 ```yaml
@@ -256,10 +256,10 @@ API_KEY\s*=      Matches: API_KEY=, API_KEY =
 Test regex patterns before using:
 
 ```bash
-python3 -c "import re; print(re.search(r'your_pattern', 'test text'))"
+node -e "console.log(/your_pattern/i.test('test text'))"
 ```
 
-Or use online regex testers (regex101.com with Python flavor).
+Or use online regex testers (regex101.com with the JavaScript flavor).
 
 ### Common Pitfalls
 
