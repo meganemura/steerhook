@@ -67,8 +67,8 @@ subagent with `--wait`, so the completion arrives as an agent notification.
 ```
 
 `/steerhook:add <what to prevent>` writes a rule for you. `/steerhook:list` shows
-the rules that are loaded. The rule format is hookify's; see
-`plugin/README.md`.
+the rules that are loaded. The manual, with every field, event, and what
+Claude sees, is `plugin/README.md`.
 
 ## Requirements
 

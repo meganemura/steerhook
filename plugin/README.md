@@ -1,342 +1,184 @@
 # steerhook
 
-Easily create custom hooks to prevent unwanted behaviors by analyzing conversation patterns or from explicit instructions.
+Rules that run before Claude Code runs a tool. A rule names a pattern you do
+not want in a tool call and the form you want instead. When the pattern
+matches, steerhook blocks the call or lets it through with a warning. In both
+cases the rule's message reaches Claude, so Claude learns the alternative at
+the moment it matters. You see the same message on screen.
 
-## Overview
+Rules are yours. They live in `~/.claude/steerhook/` and apply in every
+project. A project can replace a rule or switch it off.
 
-The steerhook plugin makes it simple to create hooks without editing complex `hooks.json` files. Instead, you create lightweight markdown configuration files that define patterns to watch for and messages to show when those patterns match.
+steerhook is a fork of Anthropic's hookify plugin (Apache 2.0, see `NOTICE`).
 
-**Key features:**
-- 🎯 Analyze conversations to find unwanted behaviors automatically
-- 📝 Simple markdown configuration files with YAML frontmatter
-- 🔍 Regex pattern matching for powerful rules
-- 🚀 No coding required - just describe the behavior
-- 🔄 Easy enable/disable without restarting
+## The first rule
 
-## Quick Start
+Create `~/.claude/steerhook/no-force-push.md`:
 
-### 1. Create Your First Rule
-
-```bash
-/steerhook:add Warn me when I use rm -rf commands
-```
-
-This analyzes your request and creates `~/.claude/steerhook/warn-rm.md`.
-
-### 2. Test It Immediately
-
-**No restart needed!** Rules take effect on the very next tool use.
-
-Ask Claude to run a command that should trigger the rule:
-```
-Run rm -rf /tmp/test
-```
-
-You should see the warning message immediately!
-
-## Usage
-
-### Main Command: /steerhook:add
-
-**With arguments:**
-```
-/steerhook:add Don't use console.log in TypeScript files
-```
-Creates a rule from your explicit instructions.
-
-**Without arguments:**
-```
-/steerhook:add
-```
-Analyzes recent conversation to find behaviors you've corrected or been frustrated by.
-
-### Helper Commands
-
-**List all rules:**
-```
-/steerhook:list
-```
-
-**Configure rules interactively:**
-```
-/steerhook:configure
-```
-Enable/disable existing rules through an interactive interface.
-
-**Get help:**
-```
-/steerhook:help
-```
-
-## Rule Configuration Format
-
-Rules live in `~/.claude/steerhook/*.md` and apply in every project. A project can also hold `.claude/steerhook/*.md` files; the plugin reads both.
-
-### Simple Rule (Single Pattern)
-
-`~/.claude/steerhook/dangerous-rm.md`:
 ```markdown
 ---
-name: block-dangerous-rm
+name: no-force-push
 enabled: true
 event: bash
-pattern: rm\s+-rf
+pattern: git\s+push\b[^\n]*\s(--force\b(?!-with-lease)|-f\b)
 action: block
 ---
 
-⚠️ **Dangerous rm command detected!**
-
-This command could delete important files. Please:
-- Verify the path is correct
-- Consider using a safer approach
-- Make sure you have backups
+Do not force-push. Use `git push --force-with-lease`, which refuses to
+overwrite work that someone else pushed in the meantime.
 ```
 
-**Action field:**
-- `warn`: Shows warning but allows operation (default)
-- `block`: Prevents operation from executing (PreToolUse) or stops session (Stop events)
+Ask Claude to run `git push --force origin main`. The call is denied. Claude
+reads the message as the reason and can act on it; you see the same message.
+No restart is needed. A rule file takes effect on the next tool call.
 
-### Advanced Rule (Multiple Conditions)
+`/steerhook:add <what to prevent>` writes a rule for you. `/steerhook:list`
+shows every rule that is loaded.
 
-`~/.claude/steerhook/sensitive-files.md`:
+## Rule files
+
+One file per rule, in `~/.claude/steerhook/`. The file has two parts: a
+frontmatter between two `---` lines, then the message.
+
+| Field        | Required             | Values                                  | Notes                                                                                            |
+| ------------ | -------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `name`       | yes                  | kebab-case                              | Heads the message as `**[name]**`. A project rule with the same name replaces this one.          |
+| `enabled`    | no, default `true`   | `true`, `false`                         | `false` switches the rule off.                                                                   |
+| `event`      | yes                  | `bash`, `file`, `stop`, `prompt`, `all` | Which hook input the rule sees. See "Events and fields".                                         |
+| `action`     | no, default `warn`   | `block`, `warn`                         | `block` denies the call. `warn` lets it through and adds the message to Claude's context.         |
+| `pattern`    | this or `conditions` | a regular expression                    | Matched against the command (`bash`) or the added text (`file`). Other events need `conditions`. |
+| `conditions` | this or `pattern`    | a list, see below                       | Every condition must match.                                                                      |
+
+The frontmatter is not YAML. steerhook reads it with a small parser of its
+own, and these are its rules:
+
+- Each line is `key: value`. Spaces around the key and the value are removed.
+- A line that starts with `#` is a comment. A `#` after a value is part of
+  the value: `action: block # why` reads as `block # why`, which is not
+  `block`.
+- A value that starts and ends with the same quote loses that one pair.
+  Nothing else is unescaped. Write one backslash: `pattern: \s+` and
+  `pattern: "\s+"` read the same. A pattern that itself starts and ends with
+  a quote needs a wrapper: `(?:"[^"]*`[^"]*")`.
+- `conditions:` starts a list. Each item starts with `-`. An item is either
+  three indented lines or one line with commas:
+
 ```markdown
----
-name: warn-sensitive-files
-enabled: true
-event: file
-action: warn
 conditions:
   - field: file_path
     operator: regex_match
-    pattern: \.env$|credentials|secrets
-  - field: new_text
-    operator: contains
-    pattern: KEY
----
-
-🔐 **Sensitive file edit detected!**
-
-Ensure credentials are not hardcoded and file is in .gitignore.
+    pattern: \.env$
+  - field: content, operator: contains, pattern: KEY
 ```
 
-**All conditions must match** for the rule to trigger.
+- The message is everything after the second `---`, with leading and
+  trailing blank lines removed. Markdown is fine.
 
-## Event Types
+## Events and fields
 
-- **`bash`**: Triggers on Bash tool commands
-- **`file`**: Triggers on Edit, Write, MultiEdit tools
-- **`stop`**: Triggers when Claude wants to stop (for completion checks)
-- **`prompt`**: Triggers on user prompt submission
-- **`all`**: Triggers on all events
+| `event`  | Fires on                     | Fields for `conditions`                                                      | A simple `pattern` reads                                                                                   |
+| -------- | ---------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `bash`   | The Bash tool                | `command`                                                                    | `command`                                                                                                  |
+| `file`   | Edit, Write, MultiEdit       | `file_path`, `new_text` (Edit), `old_text` (Edit), `content` (Edit or Write) | `new_text`, which only an Edit call carries. To cover Write too, use `conditions` with `field: content`. |
+| `stop`   | Claude wants to end its turn | `transcript` (the session transcript file), `reason`                         | Nothing. A stop rule needs `conditions`.                                                                   |
+| `prompt` | You submit a prompt          | `user_prompt`                                                                | Nothing. A prompt rule needs `conditions`.                                                                 |
+| `all`    | Every event above            | Any field above                                                              | Nothing. Use `conditions`.                                                                                 |
 
-## Pattern Syntax
+MultiEdit joins the `new_string` of every edit with a space for `new_text`
+and `content`.
 
-Use JavaScript regular-expression syntax. Matching ignores letter case:
+Operators for a condition: `regex_match`, `contains`, `equals`,
+`not_contains`, `starts_with`, `ends_with`. `regex_match` is the operator a
+simple `pattern` uses.
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `rm\s+-rf` | rm -rf | rm -rf /tmp |
-| `console\.log\(` | console.log( | console.log("test") |
-| `(eval\|exec)\(` | eval( or exec( | eval("code") |
-| `\.env$` | files ending in .env | .env, .env.local |
-| `chmod\s+777` | chmod 777 | chmod 777 file.txt |
+## Patterns
 
-**Tips:**
-- Use `\s` for whitespace
-- Escape special chars: `\.` for literal dot
-- Use `|` for OR: `(foo|bar)`
-- Use `.*` to match anything
-- Set `action: block` for dangerous operations
-- Set `action: warn` (or omit) for informational warnings
+A pattern is a JavaScript regular expression. Matching ignores letter case
+and runs against the whole text, newlines included.
 
-## Examples
+- `\b` marks a word boundary: `\bfoo\b` does not match `foobar`.
+- `[\s\S]*` crosses lines; `.` does not. A polling loop written on three
+  lines needs `[\s\S]*` between its parts.
+- `(^|[\s;&|(])codex\s+exec\b` matches a command word but not a quoted
+  mention such as `grep "codex exec" notes.md`.
+- A pattern that does not compile is reported on stderr and never matches.
 
-### Example 1: Block Dangerous Commands
+Test a pattern before you rely on it:
 
-```markdown
----
-name: block-destructive-ops
-enabled: true
-event: bash
-pattern: rm\s+-rf|dd\s+if=|mkfs|format
-action: block
----
-
-🛑 **Destructive operation detected!**
-
-This command can cause data loss. Operation blocked for safety.
-Please verify the exact path and use a safer approach.
+```sh
+node -e "console.log(/git\s+push\b[^\n]*\s--force\b/i.test('git push --force origin main'))"
 ```
 
-**This rule blocks the operation** - Claude will not be allowed to execute these commands.
+## What Claude and you see
 
-### Example 2: Warn About Debug Code
+| Event          | `action: block`                                                                       | `action: warn`                                                               |
+| -------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `bash`, `file` | The call is denied. Claude reads the message as the denial reason. You see it too.    | The call runs. Claude reads the message as added context. You see it too.    |
+| `stop`         | Claude does not stop and reads the message as the reason to continue. You see it too. | You see the message. Claude continues to stop.                               |
+| `prompt`       | The prompt is rejected and erased. You see the message; Claude does not.              | The prompt goes through. Claude reads the message beside it. You see it too. |
 
-```markdown
----
-name: warn-debug-code
-enabled: true
-event: file
-pattern: console\.log\(|debugger;|print\(
-action: warn
----
-
-🐛 **Debug code detected**
-
-Remember to remove debugging statements before committing.
-```
-
-**This rule warns but allows** - Claude sees the message but can still proceed.
-
-### Example 3: Require Tests Before Stopping
-
-```markdown
----
-name: require-tests-run
-enabled: false
-event: stop
-action: block
-conditions:
-  - field: transcript
-    operator: not_contains
-    pattern: npm test|pytest|cargo test
----
-
-**Tests not detected in transcript!**
-
-Before stopping, please run tests to verify your changes work correctly.
-```
-
-**This blocks Claude from stopping** if no test commands appear in the session transcript. Enable only when you want strict enforcement.
-
-## Advanced Usage
-
-### Multiple Conditions
-
-Check multiple fields simultaneously:
-
-```markdown
----
-name: api-key-in-typescript
-enabled: true
-event: file
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: \.tsx?$
-  - field: new_text
-    operator: regex_match
-    pattern: (API_KEY|SECRET|TOKEN)\s*=\s*["']
----
-
-🔐 **Hardcoded credential in TypeScript!**
-
-Use environment variables instead of hardcoded values.
-```
-
-### Operators Reference
-
-- `regex_match`: Pattern must match (most common)
-- `contains`: String must contain pattern
-- `equals`: Exact string match
-- `not_contains`: String must NOT contain pattern
-- `starts_with`: String starts with pattern
-- `ends_with`: String ends with pattern
-
-### Field Reference
-
-**For bash events:**
-- `command`: The bash command string
-
-**For file events:**
-- `file_path`: Path to file being edited
-- `new_text`: New content being added (Edit, Write)
-- `old_text`: Old content being replaced (Edit only)
-- `content`: File content (Write only)
-
-**For prompt events:**
-- `user_prompt`: The user's submitted prompt text
-
-**For stop events:**
-- Use general matching on session state
-
-## Management
-
-### Enable/Disable Rules
-
-**Temporarily disable:**
-Edit the rule file and set `enabled: false`
-
-**Re-enable:**
-Set `enabled: true`
-
-**Or use interactive tool:**
-```
-/steerhook:configure
-```
-
-### Delete Rules
-
-Simply delete the rule file:
-```bash
-rm ~/.claude/steerhook/my-rule.md
-```
-
-### View All Rules
+The message Claude reads is the rule's name in bold brackets, a newline, then
+the body:
 
 ```
-/steerhook:list
+**[no-force-push]**
+Do not force-push. Use `git push --force-with-lease`, ...
 ```
 
-## Installation
+When several rules match, their messages follow one another with a blank line
+between them, user rules first, then project rules, each group in file-name
+order. Today, when a `block` rule and a `warn` rule match the same call, only
+the `block` messages are delivered.
 
-This plugin is part of the Claude Code Marketplace. It should be auto-discovered when the marketplace is installed.
+## Project rules
 
-**Manual testing:**
-```bash
-cc --plugin-dir /path/to/steerhook
-```
+A project can hold rules in `<project>/.claude/steerhook/<name>.md`, in the
+same format. steerhook reads both directories. A project rule with the same
+`name` as a user rule replaces it in that project. A project rule with
+`enabled: false` switches the user rule of that name off in that project.
+
+The project is the `cwd` that Claude Code passes to the hook, not the
+directory the hook process runs in.
+
+## Commands
+
+- `/steerhook:add <what to prevent>` writes a rule from your words. Without
+  an argument it reads the recent conversation for things you corrected and
+  proposes rules.
+- `/steerhook:list` shows every rule in both directories.
+- `/steerhook:configure` switches rules on and off.
+- `/steerhook:help` explains the plugin.
 
 ## Requirements
 
-- Node 22.18 or later (node runs the TypeScript hooks directly)
-- No external dependencies, nothing to build
+Node 22.18 or later. The hooks are TypeScript files that node runs directly,
+so there is nothing to build or install. Verified with Node 26.7.0. An older
+node exits with a syntax error, which Claude Code shows as a hook error.
 
-## Troubleshooting
+Claude Code starts a hook with the PATH of the process that launched it. A
+launch from a GUI can carry a PATH without node. The launcher
+(`hooks/run.sh`) looks for node on the PATH, then in the usual install places
+(mise, volta, fnm, Homebrew, `/usr/local/bin`, nvm). Set `STEERHOOK_NODE` to
+the path of a node to skip the search; the `env` section of
+`~/.claude/settings.json` is one place to set it. When no node is found, the
+hook tells you so in the message shown on screen and lets the call through.
 
-**Rule not triggering:**
-1. Check rule file exists in `~/.claude/steerhook/` and ends with `.md`
-2. Verify `enabled: true` in frontmatter
-3. Test regex pattern separately
-4. Rules should work immediately - no restart needed
-5. Try `/steerhook:list` to see if rule is loaded
+Set `STEERHOOK_RULES_DIR` to read the user rules from another directory.
 
-**Import errors:**
-- Ensure node is available: `node --version` (22.18 or later)
-- Check steerhook plugin is installed
+## When a rule does not fire
 
-**Pattern not matching:**
-- Test regex: `node -e "console.log(/pattern/i.test('text'))"`
-- Use unquoted patterns in YAML to avoid escaping issues
-- Start simple, then add complexity
-
-**Hook seems slow:**
-- Keep patterns simple (avoid complex regex)
-- Use specific event types (bash, file) instead of "all"
-- Limit number of active rules
-
-## Contributing
-
-Found a useful rule pattern? Consider sharing example files via PR!
-
-## Future Enhancements
-
-- Severity levels (error/warning/info distinctions)
-- Rule templates library
-- Interactive pattern builder
-- Hook testing utilities
-- JSON format support (in addition to markdown)
+1. `/steerhook:list` shows whether the file was read. A file without
+   frontmatter is skipped with a warning on stderr.
+2. The file is in `~/.claude/steerhook/` or `<project>/.claude/steerhook/`
+   and ends with `.md`.
+3. `enabled: true`, and no `#` comment sits after a value.
+4. The `event` matches the tool: `bash` for Bash, `file` for Edit, Write,
+   MultiEdit. `stop`, `prompt`, and `all` need `conditions`.
+5. The pattern matches the text with the `node -e` line above. Remember the
+   quote rule and that a Write call has `content`, not `new_text`.
+6. The hook found node. If it did not, the message on screen says so.
 
 ## License
 
-Apache License 2.0. See LICENSE.
+Apache License 2.0. See `LICENSE`. steerhook started from Anthropic's
+hookify plugin; `NOTICE` records the origin.

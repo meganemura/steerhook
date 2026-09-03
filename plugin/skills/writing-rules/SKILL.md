@@ -1,372 +1,185 @@
 ---
 name: writing-steerhook-rules
-description: This skill should be used when the user asks to "create a steerhook rule", "write a hook rule", "configure steerhook", "add a steerhook rule", or needs guidance on steerhook rule syntax and patterns.
-version: 0.1.0
+description: This skill should be used when the user asks to "create a steerhook rule", "write a hook rule", "block a command", "stop Claude from doing X", "add a steerhook rule", or needs guidance on steerhook rule files, patterns, and messages.
+version: 0.2.0
 ---
 
-# Writing steerhook Rules
+# Writing steerhook rules
 
-## Overview
+## What a rule is
 
-steerhook rules are markdown files with YAML frontmatter that define patterns to watch for and messages to show when those patterns match. Rules are stored in `~/.claude/steerhook/{rule-name}.md` files and apply in every project.
+A rule is one markdown file that names two things: a move Claude must not
+make, as a pattern over a tool call, and the move to make instead, as a
+message. When the pattern matches, steerhook denies the call (`block`) or
+lets it through (`warn`), and in both cases Claude reads the message at that
+moment. The message is the point of the rule. A denial without an
+alternative teaches nothing.
 
-## Rule File Format
+## Where a rule lives
 
-### Basic Structure
+- User rules: `~/.claude/steerhook/<name>.md`. They apply in every project.
+  This is where `/steerhook:add` writes, and where a rule about the user's
+  own tools belongs.
+- Project rules: `<project>/.claude/steerhook/<name>.md`. Same format. A
+  project rule with the same `name` as a user rule replaces it in that
+  project; with `enabled: false` it switches the user rule off there. Use
+  the project directory only for an exception that belongs to one project.
+
+The file name is the rule name. Use kebab-case that states the move:
+`no-force-push`, `no-sleep-loop`, `warn-console-log`.
+
+## The file
 
 ```markdown
 ---
-name: rule-identifier
+name: no-force-push
 enabled: true
-event: bash|file|stop|prompt|all
-pattern: regex-pattern-here
+event: bash
+pattern: git\s+push\b[^\n]*\s(--force\b(?!-with-lease)|-f\b)
+action: block
 ---
 
-Message to show Claude when this rule triggers.
-Can include markdown formatting, warnings, suggestions, etc.
+Do not force-push. Use `git push --force-with-lease`, which refuses to
+overwrite work that someone else pushed in the meantime.
 ```
 
-### Frontmatter Fields
+| Field        | Values                                   | Notes                                                                         |
+| ------------ | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| `name`       | kebab-case                               | Required. Heads the message as `**[name]**`.                                  |
+| `enabled`    | `true`, `false`                          | Default `true`.                                                               |
+| `event`      | `bash`, `file`, `stop`, `prompt`, `all`  | Required. See "Events".                                                       |
+| `action`     | `block`, `warn`                          | Default `warn`.                                                               |
+| `pattern`    | a regular expression                     | For `bash` and `file`. Other events need `conditions`.                        |
+| `conditions` | a list of field, operator, pattern       | Every condition must match. See "Conditions".                                 |
 
-**name** (required): Unique identifier for the rule
-- Use kebab-case: `warn-dangerous-rm`, `block-console-log`
-- Be descriptive and action-oriented
-- Start with verb: warn, prevent, block, require, check
+The frontmatter is not YAML. Keep to these forms:
 
-**enabled** (required): Boolean to activate/deactivate
-- `true`: Rule is active
-- `false`: Rule is disabled (won't trigger)
-- Can toggle without deleting rule
+- One `key: value` per line. No comment after a value: `action: block # x`
+  reads as `block # x` and the rule falls back to `warn`.
+- Write one backslash, quoted or not. Quotes do one thing: a value that
+  starts and ends with the same quote loses that one pair. A pattern that
+  starts and ends with a quote needs a wrapper such as `(?:"[^"]*`[^"]*")`.
+- The message is everything after the second `---`.
 
-**event** (required): Which hook event to trigger on
-- `bash`: Bash tool commands
-- `file`: Edit, Write, MultiEdit tools
-- `stop`: When agent wants to stop
-- `prompt`: When user submits a prompt
-- `all`: All events
+## Writing the message
 
-**action** (optional): What to do when rule matches
-- `warn`: Show message but allow operation (default)
-- `block`: Prevent operation (PreToolUse) or stop session (Stop events)
-- If omitted, defaults to `warn`
+Claude reads the message as the reason for a denial, or as context beside
+an allowed call. Write it for that reader, at that moment:
 
-**pattern** (simple format): Regex pattern to match
-- Used for simple single-condition rules
-- Matches against command (bash) or new_text (file)
-- JavaScript regular-expression syntax; matching ignores letter case
+1. Say what the rule caught, in one sentence, so Claude knows the match was
+   not a mistake.
+2. Give the alternative as something Claude can do next: a command, a tool,
+   a form. One alternative, concrete.
+3. Stop there. Three sentences is a good length.
 
-**Example:**
-```yaml
-event: bash
-pattern: rm\s+-rf
+Good:
+
+```
+Do not run `codex exec` from Bash. Send the task to the `codex:codex-rescue`
+subagent with the Agent tool, and put `--wait` in the request. The agent's
+completion notification is then the completion of the task.
 ```
 
-### Advanced Format (Multiple Conditions)
+Weak: `Dangerous command detected! Please be careful.` It names no
+alternative, so Claude can only try a variation of the same command.
 
-For complex rules with multiple conditions:
+## Writing the pattern
+
+A pattern is a JavaScript regular expression, matched without regard to
+letter case against the whole text, newlines included.
+
+- Match the command word, not the word anywhere: `(^|[\s;&|(])codex\s+exec\b`
+  catches `cd x && codex exec` and `timeout 600 codex exec`, and lets
+  `grep "codex exec" notes.md` through because a quote precedes the word.
+- Cross lines with `[\s\S]*`, not `.*`. A loop written on three lines is
+  one command text.
+- Use `\b` so `foo` does not match `foobar`.
+- Prefer the narrow pattern that catches the real mistake over the wide one
+  that catches every mention. A false positive on `block` costs a retry
+  through another tool; a false positive on `warn` costs a note.
+
+Test the pattern against the command that should match and one that should
+not:
+
+```sh
+node -e "console.log(/(^|[\s;&|(])codex\s+exec\b/i.test('timeout 600 codex exec --help'))"
+node -e "console.log(/(^|[\s;&|(])codex\s+exec\b/i.test('grep \"codex exec\" notes.md'))"
+```
+
+## block or warn
+
+- `block` when the alternative is right every time the pattern matches.
+  The call is denied; Claude reads the message and moves to the
+  alternative.
+- `warn` when it depends. The call runs; the message enters Claude's
+  context. A shell quirk that is sometimes intended, such as a backtick
+  inside double quotes, is a `warn`.
+
+Today, when a `block` rule and a `warn` rule match the same call, only the
+`block` messages are delivered.
+
+## Events
+
+| `event`  | Fires on                       | Fields                                                                         |
+| -------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| `bash`   | The Bash tool                  | `command`                                                                      |
+| `file`   | Edit, Write, MultiEdit         | `file_path`; `new_text` and `old_text` (Edit); `content` (Edit or Write)        |
+| `stop`   | Claude wants to end its turn   | `transcript` (the transcript file's text), `reason`                            |
+| `prompt` | The user submits a prompt      | `user_prompt`                                                                  |
+| `all`    | Every event                    | Any of the above                                                               |
+
+A simple `pattern` reads `command` for `bash` and `new_text` for `file`.
+`new_text` is Edit's `new_string`; a Write call carries `content` instead,
+so a file rule that must see Write uses `conditions` with `field: content`.
+`stop`, `prompt`, and `all` rules always need `conditions`.
+
+## Conditions
 
 ```markdown
 ---
-name: warn-env-file-edits
+name: require-tests
 enabled: true
-event: file
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: \.env$
-  - field: new_text
-    operator: contains
-    pattern: API_KEY
----
-
-You're adding an API key to a .env file. Ensure this file is in .gitignore!
-```
-
-**Condition fields:**
-- `field`: Which field to check
-  - For bash: `command`
-  - For file: `file_path`, `new_text`, `old_text`, `content`
-- `operator`: How to match
-  - `regex_match`: Regex pattern matching
-  - `contains`: Substring check
-  - `equals`: Exact match
-  - `not_contains`: Substring must NOT be present
-  - `starts_with`: Prefix check
-  - `ends_with`: Suffix check
-- `pattern`: Pattern or string to match
-
-**All conditions must match for rule to trigger.**
-
-## Message Body
-
-The markdown content after frontmatter is what Claude reads when the rule triggers: as the denial reason for `block`, as added context for `warn`. Write the alternative that the rule asks for.
-
-**Good messages:**
-- Explain what was detected
-- Explain why it's problematic
-- Suggest alternatives or best practices
-- Use formatting for clarity (bold, lists, etc.)
-
-**Example:**
-```markdown
-⚠️ **Console.log detected!**
-
-You're adding console.log to production code.
-
-**Why this matters:**
-- Debug logs shouldn't ship to production
-- Console.log can expose sensitive data
-- Impacts browser performance
-
-**Alternatives:**
-- Use a proper logging library
-- Remove before committing
-- Use conditional debug builds
-```
-
-## Event Type Guide
-
-### bash Events
-
-Match Bash command patterns:
-
-```markdown
----
-event: bash
-pattern: sudo\s+|rm\s+-rf|chmod\s+777
----
-
-Dangerous command detected!
-```
-
-**Common patterns:**
-- Dangerous commands: `rm\s+-rf`, `dd\s+if=`, `mkfs`
-- Privilege escalation: `sudo\s+`, `su\s+`
-- Permission issues: `chmod\s+777`, `chown\s+root`
-
-### file Events
-
-Match Edit/Write/MultiEdit operations:
-
-```markdown
----
-event: file
-pattern: console\.log\(|eval\(|innerHTML\s*=
----
-
-Potentially problematic code pattern detected!
-```
-
-**Match on different fields:**
-```markdown
----
-event: file
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: \.tsx?$
-  - field: new_text
-    operator: regex_match
-    pattern: console\.log\(
----
-
-Console.log in TypeScript file!
-```
-
-**Common patterns:**
-- Debug code: `console\.log\(`, `debugger`, `print\(`
-- Security risks: `eval\(`, `innerHTML\s*=`, `dangerouslySetInnerHTML`
-- Sensitive files: `\.env$`, `credentials`, `\.pem$`
-- Generated files: `node_modules/`, `dist/`, `build/`
-
-### stop Events
-
-Match when agent wants to stop (completion checks):
-
-```markdown
----
 event: stop
-pattern: .*
----
-
-Before stopping, verify:
-- [ ] Tests were run
-- [ ] Build succeeded
-- [ ] Documentation updated
-```
-
-**Use for:**
-- Reminders about required steps
-- Completion checklists
-- Process enforcement
-
-### prompt Events
-
-Match user prompt content (advanced):
-
-```markdown
----
-event: prompt
+action: block
 conditions:
-  - field: user_prompt
-    operator: contains
-    pattern: deploy to production
+  - field: transcript
+    operator: not_contains
+    pattern: npx nuka run
 ---
 
-Production deployment checklist:
-- [ ] Tests passing?
-- [ ] Reviewed by team?
-- [ ] Monitoring ready?
+Run the scenarios before you stop.
 ```
 
-## Pattern Writing Tips
+Operators: `regex_match`, `contains`, `equals`, `not_contains`,
+`starts_with`, `ends_with`. Every condition must match. An item can also sit
+on one line: `- field: content, operator: contains, pattern: KEY`.
 
-### Regex Basics
+## Checking a rule
 
-**Literal characters:** Most characters match themselves
-- `rm` matches "rm"
-- `console.log` matches "console.log"
+1. `/steerhook:list` shows the rule with its event, action, and pattern. A
+   file that is not listed was not read: it lacks frontmatter or the `.md`
+   extension.
+2. Ask Claude to run a command that should match. Rules take effect on the
+   next tool call; no restart.
+3. For a `block`, the denial Claude reports is the message. For a `warn`,
+   Claude can quote the message when asked what context it received.
 
-**Special characters need escaping:**
-- `.` (any char) → `\.` (literal dot)
-- `(` `)` → `\(` `\)` (literal parens)
-- `[` `]` → `\[` `\]` (literal brackets)
+## Quick reference
 
-**Common metacharacters:**
-- `\s` - whitespace (space, tab, newline)
-- `\d` - digit (0-9)
-- `\w` - word character (a-z, A-Z, 0-9, _)
-- `.` - any character
-- `+` - one or more
-- `*` - zero or more
-- `?` - zero or one
-- `|` - OR
+Minimum rule:
 
-**Examples:**
-```
-rm\s+-rf         Matches: rm -rf, rm  -rf
-console\.log\(   Matches: console.log(
-(eval|exec)\(    Matches: eval( or exec(
-chmod\s+777      Matches: chmod 777, chmod  777
-API_KEY\s*=      Matches: API_KEY=, API_KEY =
-```
-
-### Testing Patterns
-
-Test regex patterns before using:
-
-```bash
-node -e "console.log(/your_pattern/i.test('test text'))"
-```
-
-Or use online regex testers (regex101.com with the JavaScript flavor).
-
-### Common Pitfalls
-
-**Too broad:**
-```yaml
-pattern: log    # Matches "log", "login", "dialog", "catalog"
-```
-Better: `console\.log\(|logger\.`
-
-**Too specific:**
-```yaml
-pattern: rm -rf /tmp  # Only matches exact path
-```
-Better: `rm\s+-rf`
-
-**Escaping issues:**
-- Write one backslash, quoted or not: `pattern: \s+` and `pattern: "\s+"` read the same. The frontmatter is not YAML; nothing unescapes `\\`.
-- Quotes do one thing: a value whose first and last characters are the same quote loses that one pair. Wrap such a pattern in `(?:...)` to keep them.
-
-## File Organization
-
-**Location:** `~/.claude/steerhook/`, the user's rule directory. A rule there applies in every project.
-**Naming:** `~/.claude/steerhook/{descriptive-name}.md`
-**Project rules:** A project can also hold `.claude/steerhook/{name}.md` files. The plugin reads both directories. A project rule with the same `name` replaces the user rule. A project rule with `enabled: false` switches the user rule off in that project.
-
-**Good names:**
-- `dangerous-rm.md`
-- `console-log.md`
-- `require-tests.md`
-- `sensitive-files.md`
-
-**Bad names:**
-- `rule1.md` (not descriptive)
-- `dangerous-rm.txt` (not `.md`, so the plugin does not read it)
-
-## Workflow
-
-### Creating a Rule
-
-1. Identify unwanted behavior
-2. Determine which tool is involved (Bash, Edit, etc.)
-3. Choose event type (bash, file, stop, etc.)
-4. Write regex pattern
-5. Create `~/.claude/steerhook/{name}.md`
-6. Test immediately - rules are read dynamically on next tool use
-
-### Refining a Rule
-
-1. Edit the rule file
-2. Adjust pattern or message
-3. Test immediately - changes take effect on next tool use
-
-### Disabling a Rule
-
-**Temporary:** Set `enabled: false` in frontmatter
-**Permanent:** Delete the rule file
-
-## Examples
-
-See `${CLAUDE_PLUGIN_ROOT}/examples/` for complete examples:
-- `dangerous-rm.md` - Block dangerous rm commands
-- `console-log-warning.md` - Warn about console.log
-- `sensitive-files-warning.md` - Warn about editing .env files
-
-## Quick Reference
-
-**Minimum viable rule:**
 ```markdown
 ---
 name: my-rule
 enabled: true
 event: bash
 pattern: dangerous_command
+action: block
 ---
 
-Warning message here
+Do X instead.
 ```
 
-**Rule with conditions:**
-```markdown
----
-name: my-rule
-enabled: true
-event: file
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: \.ts$
-  - field: new_text
-    operator: contains
-    pattern: any
----
-
-Warning message
-```
-
-**Event types:**
-- `bash` - Bash commands
-- `file` - File edits
-- `stop` - Completion checks
-- `prompt` - User input
-- `all` - All events
-
-**Field options:**
-- Bash: `command`
-- File: `file_path`, `new_text`, `old_text`, `content`
-- Prompt: `user_prompt`
-
-**Operators:**
-- `regex_match`, `contains`, `equals`, `not_contains`, `starts_with`, `ends_with`
+Where each field lands: `name` in the message header; `event` and
+`pattern` in the match; `action` in the decision; the body in what Claude
+reads.
