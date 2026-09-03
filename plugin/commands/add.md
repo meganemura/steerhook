@@ -41,7 +41,8 @@ either.
 
 Rule files go in the user's rule directory, `~/.claude/steerhook/`, never in
 the project and never in the plugin directory. A rule there applies in every
-project.
+project; steerhook does not read a project's own `.claude/steerhook/` at
+all.
 
 1. Expand `~` to the home directory and write each rule with the Write tool
    to `<home>/.claude/steerhook/<name>.md`. The Write tool creates the

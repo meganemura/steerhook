@@ -1,12 +1,17 @@
 Feature: Rules checked before a tool runs
 
-  steerhook reads the user's rules from ~/.claude/steerhook/ and a project's
-  rules from <project>/.claude/steerhook/. Before Claude runs a tool, the
+  steerhook reads only the user's rules, from ~/.claude/steerhook/ (or the
+  directory STEERHOOK_RULES_DIR names). Before Claude runs a tool, the
   PreToolUse hook matches the call against them and answers with JSON.
 
+  A project's own .claude/steerhook/ is never read. Opening a project is not
+  the same as trusting it, and a rule file there could replace or switch off
+  a user's rule by name with no confirmation. The scenarios below write a
+  project rule file and show it has no effect.
+
   In every scenario the hook process runs in a directory that holds no rules.
-  The project is named only by the cwd field of the hook input, the way Claude
-  Code passes it, so a project rule that fires here proves that resolution.
+  The project is named only by the cwd field of the hook input, the way
+  Claude Code passes it.
 
   Scenario: A blocking user rule denies the call and Claude reads the message
     Given the user rule "no-foo" blocks bash commands that match "\bfoo\b"
@@ -79,15 +84,15 @@ Feature: Rules checked before a tool runs
     When Claude runs the bash command "FOO --help"
     Then the command is denied and Claude reads "Use bar instead of foo."
 
-  Scenario: A project rule fires from the project the hook input names
+  Scenario: A project rule is never read
     Given the project rule "project-only" blocks bash commands that match "\bfoo\b"
       """
       Project rule fired.
       """
     When Claude runs the bash command "foo"
-    Then the command is denied and Claude reads "Project rule fired."
+    Then the hook returns nothing
 
-  Scenario: User rules come first, then project rules
+  Scenario: A user rule fires even when a project rule also matches
     Given the user rule "from-user" blocks bash commands that match "foo"
       """
       From the user.
@@ -101,12 +106,9 @@ Feature: Rules checked before a tool runs
       """
       **[from-user]**
       From the user.
-
-      **[from-project]**
-      From the project.
       """
 
-  Scenario: A project rule with the same name replaces the user rule
+  Scenario: A project rule with the same name does not replace the user rule
     Given the user rule "shared" warns bash commands that match "foo"
       """
       user version
@@ -116,20 +118,17 @@ Feature: Rules checked before a tool runs
       project version
       """
     When Claude runs the bash command "foo"
-    Then the denial reason is exactly
-      """
-      **[shared]**
-      project version
-      """
+    Then the command is allowed
+    And Claude reads the note "user version"
 
-  Scenario: A disabled project rule switches the user rule off in that project
+  Scenario: A disabled project rule does not switch off the user rule
     Given the user rule "shared" blocks bash commands that match "foo"
       """
       user version
       """
     And the project rule "shared" is disabled
     When Claude runs the bash command "foo"
-    Then the hook returns nothing
+    Then the command is denied and Claude reads "user version"
 
   Scenario: The rules directory can be moved with STEERHOOK_RULES_DIR
     Given the user rule "no-foo" blocks bash commands that match "foo"

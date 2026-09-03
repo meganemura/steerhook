@@ -11,8 +11,7 @@ export function runHook(eventFor: (input: HookInput) => string | undefined): voi
   let output: Record<string, unknown>;
   try {
     const input = JSON.parse(readFileSync(0, "utf8")) as HookInput;
-    const cwd = typeof input.cwd === "string" ? input.cwd : undefined;
-    const rules = loadRules(eventFor(input), cwd);
+    const rules = loadRules(eventFor(input));
     output = evaluateRules(rules, input);
   } catch (e) {
     output = { systemMessage: `steerhook error: ${e instanceof Error ? e.message : String(e)}` };

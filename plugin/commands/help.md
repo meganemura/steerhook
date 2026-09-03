@@ -19,10 +19,7 @@ on screen.
 ## Where rules live
 
 - `~/.claude/steerhook/<name>.md`: the user's rules. They apply in every
-  project.
-- `<project>/.claude/steerhook/<name>.md`: a project's rules. A project rule
-  with the same `name` as a user rule replaces it; with `enabled: false` it
-  switches the user rule off in that project.
+  project. A project's own rules are not read.
 
 ## A rule file
 

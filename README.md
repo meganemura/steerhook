@@ -7,7 +7,7 @@ it through with a warning. In both cases the rule's message reaches Claude, so
 Claude learns the alternative at the moment it matters.
 
 Rules are yours. They live in `~/.claude/steerhook/` and apply in every
-project. A project can replace a rule or switch it off.
+project. A project's own rules are never read.
 
 steerhook is a fork of Anthropic's
 [hookify](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/hookify)
@@ -23,12 +23,10 @@ plugin for Claude Code (Apache 2.0, see `NOTICE`).
   the project. Rules about your own tools apply in every project, so they need
   one place. The `/steerhook:add` command and the writing-rules skill write there.
   Set `STEERHOOK_RULES_DIR` to use a different directory.
-- **A project can override a rule.** A file in the project's
-  `.claude/steerhook/` with the same `name` replaces the user rule. With
-  `enabled: false` it switches the user rule off in that project.
-- **Project rules resolve from the hook's `cwd`**, not from the process working
-  directory. A plugin hook can run in the plugin's own directory, and then
-  hookify finds no rule.
+- **A project's own rules are never read.** hookify lets a project override a
+  user rule by name. steerhook does not: opening a project is not the same as
+  trusting it, and a rule file there could replace or switch off a user's
+  rule with no confirmation.
 - **The PostToolUse hook is removed.** Rules read only the tool input, so the
   PostToolUse hook repeated the PreToolUse check and put the message in the
   transcript twice.

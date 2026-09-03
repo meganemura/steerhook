@@ -19,11 +19,8 @@ alternative teaches nothing.
 
 - User rules: `~/.claude/steerhook/<name>.md`. They apply in every project.
   This is where `/steerhook:add` writes, and where a rule about the user's
-  own tools belongs.
-- Project rules: `<project>/.claude/steerhook/<name>.md`. Same format. A
-  project rule with the same `name` as a user rule replaces it in that
-  project; with `enabled: false` it switches the user rule off there. Use
-  the project directory only for an exception that belongs to one project.
+  own tools belongs. steerhook does not read a project's own
+  `.claude/steerhook/`.
 
 The file name is the rule name. Use kebab-case that states the move:
 `no-force-push`, `no-sleep-loop`, `warn-console-log`.

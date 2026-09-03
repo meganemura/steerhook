@@ -1,8 +1,7 @@
 // Ported from hookify's core/config_loader.py (Apache 2.0, see NOTICE).
-// Loads and parses the rule files in ~/.claude/steerhook/ and in the
-// project's .claude/steerhook/. The frontmatter parser is deliberately the
-// same small state machine as upstream's: the rule-files feature pins what
-// it accepts, and no YAML library is involved.
+// Loads and parses the rule files in ~/.claude/steerhook/. The frontmatter
+// parser is deliberately the same small state machine as upstream's: the
+// rule-files feature pins what it accepts, and no YAML library is involved.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
@@ -224,25 +223,15 @@ function ruleFilesIn(dir: string): string[] {
     .map((n) => join(dir, n));
 }
 
-// Load all rules from the user and project rule directories.
-// event filters by rule event ("bash", "file", "stop", ...). cwd is the
-// project directory that holds .claude/; it defaults to the process cwd.
-export function loadRules(event?: string, cwd?: string): Rule[] {
-  // Rules about the user's own tools apply in every project, so the user
-  // directory (~/.claude/steerhook/*.md, or STEERHOOK_RULES_DIR) is read
-  // too. A project rule with the same name replaces the user rule.
+// Load all rules from the user's rule directory.
+// event filters by rule event ("bash", "file", "stop", ...).
+//
+// A project's own .claude/steerhook/ is not read. Opening a project is not
+// the same as trusting it, and a rule file there could replace or switch
+// off a user's rule by name with no confirmation.
+export function loadRules(event?: string): Rule[] {
   const userDir = process.env.STEERHOOK_RULES_DIR || join(homedir(), ".claude", "steerhook");
-  const userRules = loadRuleFiles(ruleFilesIn(userDir), event);
-
-  // The project directory has the same shape as the user directory. A
-  // plugin hook can run in the plugin's own directory, so the project is
-  // taken from the hook input's cwd, not the process cwd.
-  const projectRules = loadRuleFiles(ruleFilesIn(join(cwd || ".", ".claude", "steerhook")), event);
-
-  // A disabled project rule also hides the user rule of the same name, so
-  // a project can switch a user rule off. Disabled rules drop out last.
-  const projectNames = new Set(projectRules.map((r) => r.name));
-  const rules = [...userRules.filter((r) => !projectNames.has(r.name)), ...projectRules];
+  const rules = loadRuleFiles(ruleFilesIn(userDir), event);
   return rules.filter((r) => r.enabled);
 }
 

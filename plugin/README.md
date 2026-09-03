@@ -7,7 +7,7 @@ cases the rule's message reaches Claude, so Claude learns the alternative at
 the moment it matters. You see the same message on screen.
 
 Rules are yours. They live in `~/.claude/steerhook/` and apply in every
-project. A project can replace a rule or switch it off.
+project. A project's own rules are never read.
 
 steerhook is a fork of Anthropic's hookify plugin (Apache 2.0, see `NOTICE`).
 
@@ -42,7 +42,7 @@ frontmatter between two `---` lines, then the message.
 
 | Field        | Required             | Values                                  | Notes                                                                                            |
 | ------------ | -------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `name`       | yes                  | kebab-case                              | Heads the message as `**[name]**`. A project rule with the same name replaces this one.          |
+| `name`       | yes                  | kebab-case                              | Heads the message as `**[name]**`.                                                               |
 | `enabled`    | no, default `true`   | `true`, `false`                         | `false` switches the rule off.                                                                   |
 | `event`      | yes                  | `bash`, `file`, `stop`, `prompt`, `all` | Which hook input the rule sees. See "Events and fields".                                         |
 | `action`     | no, default `warn`   | `block`, `warn`                         | `block` denies the call. `warn` lets it through and adds the message to Claude's context.         |
@@ -126,19 +126,16 @@ Do not force-push. Use `git push --force-with-lease`, ...
 ```
 
 When several rules match, their messages follow one another with a blank line
-between them, user rules first, then project rules, each group in file-name
-order. Today, when a `block` rule and a `warn` rule match the same call, only
-the `block` messages are delivered.
+between them, in file-name order. Today, when a `block` rule and a `warn`
+rule match the same call, only the `block` messages are delivered.
 
 ## Project rules
 
-A project can hold rules in `<project>/.claude/steerhook/<name>.md`, in the
-same format. steerhook reads both directories. A project rule with the same
-`name` as a user rule replaces it in that project. A project rule with
-`enabled: false` switches the user rule of that name off in that project.
-
-The project is the `cwd` that Claude Code passes to the hook, not the
-directory the hook process runs in.
+steerhook reads only `~/.claude/steerhook/` (or the directory
+`STEERHOOK_RULES_DIR` names). A project's own `.claude/steerhook/` is not
+read: opening a project is not the same as trusting it, and a rule file
+there could replace or switch off a user's rule by name with no
+confirmation.
 
 ## Commands
 
@@ -169,8 +166,7 @@ Set `STEERHOOK_RULES_DIR` to read the user rules from another directory.
 
 1. `/steerhook:list` shows whether the file was read. A file without
    frontmatter is skipped with a warning on stderr.
-2. The file is in `~/.claude/steerhook/` or `<project>/.claude/steerhook/`
-   and ends with `.md`.
+2. The file is in `~/.claude/steerhook/` and ends with `.md`.
 3. `enabled: true`, and no `#` comment sits after a value.
 4. The `event` matches the tool: `bash` for Bash, `file` for Edit, Write,
    MultiEdit. `stop`, `prompt`, and `all` need `conditions`.
