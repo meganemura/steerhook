@@ -251,7 +251,9 @@ class RuleEngine:
                         return ''
             elif field == 'user_prompt':
                 # For UserPromptSubmit events
-                return input_data.get('user_prompt', '')
+                # Fork: the hook input carries the text in "prompt" (documented);
+                # upstream read "user_prompt", so a prompt rule never fired.
+                return input_data.get('prompt', input_data.get('user_prompt', ''))
 
         # Handle special cases by tool type
         if tool_name == 'Bash':

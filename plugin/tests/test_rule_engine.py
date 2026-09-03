@@ -65,10 +65,10 @@ class PreToolUseOutputTest(unittest.TestCase):
 class UserPromptSubmitOutputTest(unittest.TestCase):
     def setUp(self):
         self.engine = RuleEngine()
-        # The engine reads the prompt from the user_prompt field.
+        # The hook input carries the text in "prompt"; rules name the field user_prompt.
         self.input_data = {
             'hook_event_name': 'UserPromptSubmit',
-            'user_prompt': 'deploy to production now',
+            'prompt': 'deploy to production now',
         }
         self.kwargs = dict(field='user_prompt', pattern='deploy to production')
 
