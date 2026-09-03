@@ -80,27 +80,56 @@ completion notification is then the completion of the task.
 Weak: `Dangerous command detected! Please be careful.` It names no
 alternative, so Claude can only try a variation of the same command.
 
+## What a bash rule matches
+
+A bash rule is about what the shell does, so the pattern does not run over
+the raw text. steerhook scans the command's quoting and splits it into three
+views. Every character lands in exactly one of them.
+
+| Field              | Holds                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| `command`          | The code: outside quotes, the quote marks, a heredoc's operator and terminator. A simple `pattern` reads this. |
+| `command_literal`  | The contents of single quotes, and the body of `<<'EOF'`.                                      |
+| `command_expanded` | The contents of double quotes, and the body of `<<EOF`. This is where the shell substitutes.   |
+| `command_raw`      | The whole string, for a rule about how a command is written.                                   |
+
+`pattern: (^|[\s;&|(])codex\s+exec\b` denies `timeout 600 codex exec --help`
+and lets `claude -p 'run codex exec' --model sonnet` through, because the
+second one's `codex exec` is an argument the shell never runs. A rule that
+watches for substitution reads `command_expanded`:
+
+```markdown
+conditions:
+  - field: command_expanded
+    operator: regex_match
+    pattern: (?<!\\)`
+```
+
 ## Writing the pattern
 
 A pattern is a JavaScript regular expression, matched without regard to
 letter case against the whole text, newlines included.
 
 - Match the command word, not the word anywhere: `(^|[\s;&|(])codex\s+exec\b`
-  catches `cd x && codex exec` and `timeout 600 codex exec`, and lets
-  `grep "codex exec" notes.md` through because a quote precedes the word.
+  catches `cd x && codex exec` and `timeout 600 codex exec`.
 - Cross lines with `[\s\S]*`, not `.*`. A loop written on three lines is
   one command text.
 - Use `\b` so `foo` does not match `foobar`.
+- Require the syntax the mistake needs, not only its words. A loop rule that
+  asks for `do` after the keyword, `\b(until|while)\b[^\n;]*(;|\n)\s*do\b`,
+  catches `while true; do` and lets the file name `no-until-sleep-loop.md`
+  through.
 - Prefer the narrow pattern that catches the real mistake over the wide one
   that catches every mention. A false positive on `block` costs a retry
   through another tool; a false positive on `warn` costs a note.
 
 Test the pattern against the command that should match and one that should
-not:
+not. Pass the code view, not the raw command: the quoted parts are already
+gone by the time a bash pattern runs.
 
 ```sh
 node -e "console.log(/(^|[\s;&|(])codex\s+exec\b/i.test('timeout 600 codex exec --help'))"
-node -e "console.log(/(^|[\s;&|(])codex\s+exec\b/i.test('grep \"codex exec\" notes.md'))"
+node -e "console.log(/(^|[\s;&|(])codex\s+exec\b/i.test('grep \"\" notes.md'))"
 ```
 
 ## block or warn
@@ -119,7 +148,7 @@ Today, when a `block` rule and a `warn` rule match the same call, only the
 
 | `event`  | Fires on                       | Fields                                                                         |
 | -------- | ------------------------------ | ------------------------------------------------------------------------------ |
-| `bash`   | The Bash tool                  | `command`                                                                      |
+| `bash`   | The Bash tool                  | `command`, `command_literal`, `command_expanded`, `command_raw`                |
 | `file`   | Edit, Write, MultiEdit         | `file_path`; `new_text` and `old_text` (Edit); `content` (Edit or Write)        |
 | `stop`   | Claude wants to end its turn   | `transcript` (the transcript file's text), `reason`                            |
 | `prompt` | The user submits a prompt      | `user_prompt`                                                                  |

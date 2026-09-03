@@ -30,6 +30,11 @@ plugin for Claude Code (Apache 2.0, see `NOTICE`).
 - **The PostToolUse hook is removed.** Rules read only the tool input, so the
   PostToolUse hook repeated the PreToolUse check and put the message in the
   transcript twice.
+- **A bash rule matches what the shell runs.** hookify matches the raw
+  command text, so `codex exec` inside a quoted argument and a `while` loop
+  inside a heredoc body both fire the rule, although the shell runs neither.
+  steerhook scans the quoting and matches the code. A rule can name the other
+  views instead: `command_literal`, `command_expanded`, `command_raw`.
 - **A quoted pattern loses one pair of quotes, not every quote.** hookify
   stripped every `"` and `'` at both ends. A regex such as `[^"]*"` lost its
   closing quote.

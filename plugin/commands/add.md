@@ -82,4 +82,6 @@ off.
   `node -e "console.log(/<pattern>/i.test('<command>'))"`, and remember that a
   `#` after a value becomes part of the value.
 - The rule fires too often: narrow the pattern (`\b`, a command-word
-  prefix such as `(^|[\s;&|(])`), or change `action: block` to `warn`.
+  prefix such as `(^|[\s;&|(])`, the syntax the mistake needs), or change
+  `action: block` to `warn`. A bash pattern already runs against the code,
+  so a quoted mention and a heredoc body are not the cause.

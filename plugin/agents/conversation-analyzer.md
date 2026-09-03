@@ -29,8 +29,9 @@ consequence.
 ## For each move
 
 Find the tool call that carried it: the Bash command, or the Edit or Write
-and its file. Take the pattern from the real command text, narrow enough to
-miss a quoted mention:
+and its file. Take the pattern from the real command text. A bash pattern
+runs against the code, so a quoted mention and a heredoc body are already
+out of its way; ask the pattern for the syntax the mistake needs:
 
 - A command word: `(^|[\s;&|(])codex\s+exec\b`.
 - A flag: `git\s+push\b[^\n]*\s(--force\b(?!-with-lease)|-f\b)`.

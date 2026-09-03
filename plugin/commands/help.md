@@ -46,6 +46,13 @@ Do not force-push. Use `git push --force-with-lease`.
 - The message: what the rule caught and the alternative, in a few
   sentences.
 
+A bash pattern runs against the code the shell reads, not the raw text, so
+`codex exec` inside a quoted argument and a loop inside a heredoc body do not
+match. A rule can name another view with `conditions`: `command_literal` is
+the contents of single quotes and of `<<'EOF'`, `command_expanded` is the
+contents of double quotes and of `<<EOF`, and `command_raw` is the whole
+string.
+
 ## What Claude sees
 
 | Action  | Bash and file tools                          | Stop                              | Prompt                                    |

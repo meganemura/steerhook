@@ -78,7 +78,7 @@ conditions:
 
 | `event`  | Fires on                     | Fields for `conditions`                                                      | A simple `pattern` reads                                                                                   |
 | -------- | ---------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `bash`   | The Bash tool                | `command`                                                                    | `command`                                                                                                  |
+| `bash`   | The Bash tool                | `command`, `command_literal`, `command_expanded`, `command_raw`              | `command`                                                                                                  |
 | `file`   | Edit, Write, MultiEdit       | `file_path`, `new_text` (Edit), `old_text` (Edit), `content` (Edit or Write) | `new_text`, which only an Edit call carries. To cover Write too, use `conditions` with `field: content`. |
 | `stop`   | Claude wants to end its turn | `transcript` (the session transcript file), `reason`                         | Nothing. A stop rule needs `conditions`.                                                                   |
 | `prompt` | You submit a prompt          | `user_prompt`                                                                | Nothing. A prompt rule needs `conditions`.                                                                 |
@@ -91,6 +91,33 @@ Operators for a condition: `regex_match`, `contains`, `equals`,
 `not_contains`, `starts_with`, `ends_with`. `regex_match` is the operator a
 simple `pattern` uses.
 
+## What a bash rule matches
+
+A bash rule is about what the shell does, so steerhook does not match the raw
+text. It scans the command's quoting one time and splits it into three views.
+Every character lands in exactly one of them.
+
+| Field              | Holds                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `command`          | The code: everything outside quotes, the quote marks, and a heredoc's operator and terminator. A simple `pattern` reads this. |
+| `command_literal`  | The text the shell never reads: the contents of single quotes, and the body of a heredoc whose word is quoted (`<<'EOF'`). |
+| `command_expanded` | The text the shell still expands: the contents of double quotes, and the body of a heredoc whose word is not quoted (`<<EOF`). |
+| `command_raw`      | The whole string the tool received. For a rule about how a command is written, not about what it runs. |
+
+So a rule with `pattern: (^|[\s;&|(])codex\s+exec\b` denies
+`timeout 600 codex exec --help` and lets
+`claude -p 'run codex exec' --model sonnet` through: the second one's `codex
+exec` is an argument, and the shell never runs it.
+
+Segments of one view are joined with a newline, so a pattern that cannot
+cross a line cannot join two separate quoted strings.
+
+The scanner reads `'…'`, `"…"` with a backslash escape, a backslash outside
+quotes, `<<WORD`, `<<'WORD'`, `<<"WORD"`, `<<\WORD`, `<<-WORD`, and `<<<`.
+It is a scanner of quoting, not a shell parser: it does not know command
+position, so `sh -c "rm -rf /"` puts the inner command in `command_expanded`.
+It does not enter `$(…)` or a backtick; both are code.
+
 ## Patterns
 
 A pattern is a JavaScript regular expression. Matching ignores letter case
@@ -99,8 +126,9 @@ and runs against the whole text, newlines included.
 - `\b` marks a word boundary: `\bfoo\b` does not match `foobar`.
 - `[\s\S]*` crosses lines; `.` does not. A polling loop written on three
   lines needs `[\s\S]*` between its parts.
-- `(^|[\s;&|(])codex\s+exec\b` matches a command word but not a quoted
-  mention such as `grep "codex exec" notes.md`.
+- A bash pattern is matched against the code, not the raw text, so a quoted
+  mention such as `grep "codex exec" notes.md` never reaches it. See "What a
+  bash rule matches".
 - A pattern that does not compile is reported on stderr and never matches.
 
 Test a pattern before you rely on it:
