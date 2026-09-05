@@ -12,10 +12,7 @@ export default defineStep({
   description: "Assert the permissionDecisionReason equals the docstring, character for character",
   rationale: "Pins the message format: the rule name in bold brackets, a newline, the message; two rules joined by a blank line.",
   args: z.object({
-    // Optional in the schema only: `from` fills it. nuka check counts a
-    // required key `from` fills as unconsumed when a docstring is attached,
-    // so the docstring could not bind to `expected` otherwise.
-    output: z.record(z.string(), z.unknown()).optional().describe("The hook output from the When step"),
+    output: z.record(z.string(), z.unknown()).describe("The hook output from the When step"),
     expected: z.string().describe("The exact reason text, as the docstring"),
   }),
   from: {

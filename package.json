@@ -10,6 +10,6 @@
   },
   "devDependencies": {
     "@hegeldev/hegel": "0.4.5",
-    "nukadoko": "0.11.0"
+    "nukadoko": "0.12.0"
   }
 }
