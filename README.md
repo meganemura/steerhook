@@ -71,9 +71,56 @@ Do not run `codex exec` from Bash. Send the task to the `codex:codex-rescue`
 subagent with `--wait`, so the completion arrives as an agent notification.
 ```
 
-`/steerhook:add <what to prevent>` writes a rule for you. `/steerhook:list` shows
-the rules that are loaded. The manual, with every field, event, and what
-Claude sees, is `plugin/README.md`.
+The manual, with every field, event, and what Claude sees, is
+`plugin/README.md`.
+
+## Commands
+
+Four slash commands, and one skill Claude loads on its own.
+
+### `/steerhook:add <what to prevent>`
+
+Writes a rule file from your words. It reads the last few exchanges for a
+real example of the move, so the pattern matches the command you actually ran
+and the message names the alternative you actually took. It shows you the
+pattern and the message, asks whether the rule should `block` or `warn`, and
+writes to `~/.claude/steerhook/<name>.md` only after you agree.
+
+Called with no argument, it first runs the `conversation-analyzer` agent,
+which reads the conversation for moves you corrected or asked Claude not to
+repeat and proposes one rule per move. You pick which ones become files.
+
+### `/steerhook:list`
+
+Prints one table of every rule that is loaded: name, enabled, event, action,
+pattern, file. Under it, the first line of each rule's message, so you can
+see what Claude will read. A rule missing from this table was not read at
+all, which is the first thing to check when a rule does not fire.
+
+### `/steerhook:configure`
+
+Switches rules on and off by editing their `enabled` line, and touches
+nothing else in the file. It lists the rules with their current state, you
+pick which to toggle, and it reports what changed. To remove a rule instead
+of switching it off, delete its file.
+
+### `/steerhook:help`
+
+Explains the plugin: what it does, where rules live, the shape of a rule
+file, what Claude sees for each action and event, and the list to walk when a
+rule does not fire.
+
+### The `writing-rules` skill
+
+Not a command. Claude loads it when you ask for a rule in your own words
+("stop me from force-pushing"), and `/steerhook:add` loads it first thing. It
+carries the file format, the four fields a bash rule can match, how to write
+a pattern that catches the real mistake and not every mention, and how to
+write a message Claude can act on. A denial with no alternative teaches
+nothing, and the skill is what keeps that from happening.
+
+Rules take effect on the next tool call. None of these commands needs a
+restart.
 
 ## Requirements
 
