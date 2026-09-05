@@ -1,5 +1,7 @@
 # steerhook
 
+[日本語](README.ja.md)
+
 A hook that steers. Write a rule that names a command pattern you do not want
 Claude to run and the form you want instead. Before Claude runs a tool,
 steerhook checks the call against your rules. A rule can block the call or let
